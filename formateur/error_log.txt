@@ -1,0 +1,58 @@
+[26-Feb-2025 01:30:43 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Exam::getExamsByFormateurId() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:41
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 41
+[26-Feb-2025 01:34:18 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:54
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 54
+[26-Feb-2025 01:34:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:54
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 54
+[26-Feb-2025 01:36:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 01:36:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\dashboard.php on line 70
+[26-Feb-2025 07:17:56 Europe/Berlin] PHP Warning:  Undefined array key "passing_score" in C:\xampp\htdocs\new_exam_php\formateur\exams.php on line 338
+[26-Feb-2025 07:18:09 Europe/Berlin] PHP Warning:  Undefined array key "passing_score" in C:\xampp\htdocs\new_exam_php\formateur\exams.php on line 277
+[26-Feb-2025 07:39:48 Europe/Berlin] PHP Warning:  Undefined array key "correct_answer" in C:\xampp\htdocs\new_exam_php\models\Question.php on line 21
+[26-Feb-2025 08:06:45 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultsByExamId() in C:\xampp\htdocs\new_exam_php\formateur\results.php:79
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\results.php on line 79
+[26-Feb-2025 08:33:50 Europe/Berlin] PHP Warning:  Undefined array key "question_type" in C:\xampp\htdocs\new_exam_php\formateur\questions.php on line 314
+[26-Feb-2025 08:37:26 Europe/Berlin] PHP Warning:  Undefined array key "correct_answer" in C:\xampp\htdocs\new_exam_php\models\Question.php on line 21
+[26-Feb-2025 08:39:17 Europe/Berlin] PHP Warning:  Undefined array key "correct_answer" in C:\xampp\htdocs\new_exam_php\models\Question.php on line 21
+[26-Feb-2025 09:08:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\formateur\results.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\results.php on line 53
+[26-Feb-2025 20:43:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultsByExamId() in C:\xampp\htdocs\new_exam_php\formateur\results.php:79
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\formateur\results.php on line 79

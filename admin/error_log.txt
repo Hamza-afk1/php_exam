@@ -1,0 +1,192 @@
+[26-Feb-2025 00:20:21 Europe/Berlin] PHP Fatal error:  Uncaught Error: Cannot access protected property Result::$db in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:51
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 51
+[26-Feb-2025 00:20:41 Europe/Berlin] PHP Fatal error:  Uncaught Error: Cannot access protected property Result::$db in C:\xampp\htdocs\new_exam_php\admin\fixed_index.php:28
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\fixed_index.php on line 28
+[28-Feb-2025 16:56:55 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 16:57:35 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 16:57:58 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 16:58:18 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 16:58:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 17:11:24 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:192
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 192
+[28-Feb-2025 17:12:05 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 17:13:08 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:01:18 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:02:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:02:20 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:03:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:07:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:07:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:07:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:07:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:13:11 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:268
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 268
+[28-Feb-2025 18:13:22 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:268
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 268
+[28-Feb-2025 18:14:08 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:268
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 268
+[28-Feb-2025 18:14:39 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:14:52 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:15:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 18:46:39 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[28-Feb-2025 19:37:42 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[28-Feb-2025 19:37:53 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[28-Feb-2025 19:38:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[28-Feb-2025 19:38:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[28-Feb-2025 19:38:25 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[01-Mar-2025 13:36:36 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[01-Mar-2025 14:46:03 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[01-Mar-2025 14:46:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:288
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 288
+[01-Mar-2025 14:46:35 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 14:46:37 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 14:46:51 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 14:50:09 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 14:50:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 15:03:45 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:281
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 281
+[01-Mar-2025 16:29:07 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[01-Mar-2025 16:29:15 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[01-Mar-2025 16:29:45 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:54:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:57:37 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:57:39 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:57:47 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:57:55 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284
+[02-Mar-2025 00:57:59 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::query() in C:\xampp\htdocs\new_exam_php\admin\dashboard.php:284
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\admin\dashboard.php on line 284

@@ -1,0 +1,16 @@
+{
+  "name": "new_exam_php",
+  "version": "1.0.0",
+  "description": "Exam Management System",
+  "main": "index.js",
+  "scripts": {
+    "tailwind:build": "npx tailwindcss -i input.css -o output.css",
+    "tailwind:watch": "npx tailwindcss -i input.css -o output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

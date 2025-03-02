@@ -1,0 +1,9 @@
+// Add this form field after the passing_score field
+<div class="form-group">
+    <label for="total_points">Total Points</label>
+    <select class="form-control" id="total_points" name="total_points" required>
+        <option value="20" <?php echo ($action === 'edit' && isset($examData['total_points']) && $examData['total_points'] == 20) ? 'selected' : ''; ?>>20 points</option>
+        <option value="40" <?php echo ($action === 'edit' && isset($examData['total_points']) && $examData['total_points'] == 40) ? 'selected' : ''; ?>>40 points</option>
+    </select>
+    <small class="form-text text-muted">Choose the total points for this exam (20 or 40).</small>
+</div>

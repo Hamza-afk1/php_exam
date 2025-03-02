@@ -1,0 +1,10 @@
+// Update this section in the POST handling
+if (isset($_POST['add_exam']) || isset($_POST['update_exam'])) {
+    $examData = [
+        'name' => $_POST['name'],
+        'description' => $_POST['description'],
+        'time_limit' => (int)$_POST['time_limit'],
+        'passing_score' => (int)$_POST['passing_score'],
+        'total_points' => (int)$_POST['total_points'],
+        'formateur_id' => $formateurId  // Always use the current formateur's ID
+    ];

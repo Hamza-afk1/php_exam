@@ -1,0 +1,438 @@
+<?php
+// Turn on error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Load configuration and session
+require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/utils/Session.php';
+require_once __DIR__ . '/models/User.php';
+require_once __DIR__ . '/models/Exam.php';
+require_once __DIR__ . '/models/Question.php';
+require_once __DIR__ . '/models/Result.php';
+require_once __DIR__ . '/models/Answer.php';
+
+// Start the session
+Session::init();
+
+// Check login status
+if (!Session::isLoggedIn()) {
+    header('Location: ' . BASE_URL . '/login.php');
+    exit;
+}
+
+// Check if user is stagiaire
+if (Session::get('user_role') !== 'stagiaire') {
+    header('Location: ' . BASE_URL . '/index.php');
+    exit;
+}
+
+// Get the stagiaire ID from session
+$stagiaireId = Session::get('user_id');
+
+// Initialize models
+$userModel = new User();
+$examModel = new Exam();
+$questionModel = new Question();
+$resultModel = new Result();
+$answerModel = new Answer();
+
+// Process Request
+$examId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$action = isset($_GET['action']) ? $_GET['action'] : 'start';
+
+// If no valid exam ID, redirect to dashboard
+if ($examId <= 0) {
+    header('Location: ' . BASE_URL . '/stagiaire/dashboard.php');
+    exit;
+}
+
+// Get exam details
+$exam = $examModel->getById($examId);
+
+// If exam doesn't exist, redirect to dashboard
+if (!$exam) {
+    header('Location: ' . BASE_URL . '/stagiaire/dashboard.php');
+    exit;
+}
+
+// Get questions for this exam
+$questions = $questionModel->getQuestionsByExam($examId);
+
+// Check if user has already taken this exam
+$hasResult = $resultModel->resultExists($stagiaireId, $examId);
+
+// If exam has been taken, redirect to exam complete page or dashboard
+if ($hasResult) {
+    // Redirect to exam complete page or results page
+    header('Location: ' . BASE_URL . '/stagiaire/exam_complete.php?exam_id=' . $examId);
+    exit;
+}
+
+// Initialize message and error
+$message = '';
+$error = '';
+
+// Process form submission when student submits answers
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_exam'])) {
+    // Double-check that the exam hasn't been taken
+    if ($resultModel->resultExists($stagiaireId, $examId)) {
+        header('Location: ' . BASE_URL . '/stagiaire/exam_complete.php?exam_id=' . $examId);
+        exit;
+    }
+
+    $hasErrors = false;
+    
+    // Create a new result entry
+    $resultData = [
+        'stagiaire_id' => $stagiaireId,
+        'exam_id' => $examId,
+        'score' => null,  // Will be calculated after grading
+        'total_score' => null, // Will be calculated after grading
+        'graded_by' => null  // Will be updated after formateur grades
+    ];
+    $resultModel->create($resultData);
+    
+    // Process answers for each question
+    foreach ($questions as $question) {
+        $questionId = $question['id'];
+        $answer = isset($_POST['answer'][$questionId]) ? $_POST['answer'][$questionId] : null;
+        
+        if ($question['question_type'] === 'qcm') {
+            // Handle QCM questions
+            if (empty($answer) && !is_array($answer)) {
+                $hasErrors = true;
+                continue;
+            }
+            
+            // Handle answer checking for QCM
+            $isCorrect = false;
+            $correctAnswers = is_array($question['correct_answer']) ? $question['correct_answer'] : [$question['correct_answer']];
+            
+            // For single-select QCM
+            if (!is_array($answer)) {
+                $isCorrect = in_array($answer, $correctAnswers);
+            } 
+            // For multi-select QCM
+            else {
+                sort($answer);
+                sort($correctAnswers);
+                $isCorrect = $answer == $correctAnswers;
+            }
+            
+            // Prepare answer data
+            $answerData = [
+                'exam_id' => $examId,
+                'stagiaire_id' => $stagiaireId,
+                'question_id' => $questionId,
+                'answer_text' => is_array($answer) ? json_encode($answer) : $answer,
+                'is_correct' => $isCorrect ? 1 : 0,
+                'graded_points' => $isCorrect ? $question['points'] : 0,
+                'max_points' => $question['points']
+            ];
+            
+        } else {
+            // Handle open-ended questions
+            if (empty($answer)) {
+                $hasErrors = true;
+                continue;
+            }
+            
+            // For open questions, is_correct will remain null until graded by formateur
+            $answerData = [
+                'exam_id' => $examId,
+                'stagiaire_id' => $stagiaireId,
+                'question_id' => $questionId,
+                'answer_text' => $answer,
+                'is_correct' => null,  // Null until graded by formateur
+                'graded_points' => null,  // Will be set by formateur
+                'max_points' => $question['points']
+            ];
+        }
+        
+        // Save the answer
+        $answerModel->create($answerData);
+    }
+    
+    if (!$hasErrors) {
+        // Calculate the score for QCM questions immediately
+        $scoreData = $answerModel->calculateTotalScore($examId, $stagiaireId);
+        $totalScore = $scoreData['total_score'];
+        
+        // Redirect to exam complete page
+        header('Location: ' . BASE_URL . '/stagiaire/exam_complete.php?exam_id=' . $examId);
+        exit;
+    } else {
+        $error = "Please answer all questions before submitting.";
+    }
+}
+
+// Page title based on action
+$pageTitle = $action === 'start' ? "Start Exam: " . $exam['name'] : "Taking Exam: " . $exam['name'];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $pageTitle; ?> | <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link href="assets/css/dark-mode.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+        .timer {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+        .timer.warning {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .question-card {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .question-header {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .question-body {
+            padding: 15px;
+        }
+        .question-points {
+            float: right;
+            font-weight: normal;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark fixed-top bg-primary flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php"><?php echo SITE_NAME; ?></a>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="text-right p-4">
+                    <button id="dark-mode-toggle" class="btn btn-outline-secondary">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <?php if ($action === 'start'): ?>
+                <!-- Exam Start Page -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><?php echo htmlspecialchars($exam['name']); ?></h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Description:</strong> <?php echo htmlspecialchars($exam['description']); ?></p>
+                        <p><strong>Time Limit:</strong> <?php echo htmlspecialchars($exam['time_limit']); ?> minutes</p>
+                        <p><strong>Total Points:</strong> <?php echo htmlspecialchars($exam['total_points']); ?> points</p>
+                        <p><strong>Passing Score:</strong> <?php echo htmlspecialchars($exam['passing_score']); ?>%</p>
+                        
+                        <?php if ($hasResult): ?>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> You have already taken this exam. You cannot take it again.
+                            </div>
+                            <a href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        <?php else: ?>
+                            <p>Are you ready to start the exam? Once you start, the timer will begin and you will need to complete all questions within the time limit.</p>
+                            <a href="<?php echo BASE_URL; ?>/exam.php?id=<?php echo $examId; ?>&action=take" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Start Exam
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php else: ?>
+                <!-- Taking Exam -->
+                <?php if ($hasResult): ?>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> You have already taken this exam. You cannot take it again.
+                    </div>
+                    <a href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                <?php else: ?>
+                    <!-- Timer -->
+                    <div class="timer" id="exam-timer">
+                        Time Remaining: <span id="timer-display"><?php echo $exam['time_limit']; ?>:00</span>
+                    </div>
+
+                    <!-- Error Message (if any) -->
+                    <?php if (!empty($error)): ?>
+                    <div class="alert alert-danger">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Exam Form -->
+                    <form method="post" id="exam-form">
+                        <h3><?php echo htmlspecialchars($exam['name']); ?></h3>
+                        <p class="text-muted">Total Points: <?php echo htmlspecialchars($exam['total_points']); ?> | Time Limit: <?php echo htmlspecialchars($exam['time_limit']); ?> minutes</p>
+                        
+                        <?php foreach ($questions as $index => $question): ?>
+                            <div class="question-card">
+                                <div class="question-header">
+                                    Question <?php echo $index + 1; ?>
+                                    <span class="question-points"><?php echo $question['points']; ?> points</span>
+                                </div>
+                                <div class="question-body">
+                                    <p><?php echo htmlspecialchars($question['question_text']); ?></p>
+                                    
+                                    <?php if ($question['question_type'] === 'qcm'): ?>
+                                        <!-- Multiple Choice Question -->
+                                        <?php if (isset($question['options']) && is_array($question['options'])): ?>
+                                            <?php 
+                                            $multipleCorrect = is_array($question['correct_answer']) && count($question['correct_answer']) > 1; 
+                                            $optionType = $multipleCorrect ? 'checkbox' : 'radio';
+                                            ?>
+                                            <?php if ($multipleCorrect): ?>
+                                                <p class="text-info"><small>Select all correct answers.</small></p>
+                                            <?php endif; ?>
+                                            <?php foreach ($question['options'] as $optionKey => $optionText): ?>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="<?php echo $optionType; ?>" 
+                                                           name="answer[<?php echo $question['id']; ?>]<?php echo $multipleCorrect ? '[]' : ''; ?>" 
+                                                           id="option_<?php echo $question['id']; ?>_<?php echo $optionKey; ?>" 
+                                                           value="<?php echo chr(65 + $optionKey); ?>"
+                                                           <?php echo $multipleCorrect ? '' : 'required'; ?>>
+                                                    <label class="form-check-label" for="option_<?php echo $question['id']; ?>_<?php echo $optionKey; ?>">
+                                                        <?php echo chr(65 + $optionKey); ?>. <?php echo htmlspecialchars($optionText); ?>
+                                                    </label>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <!-- Open-ended Question -->
+                                        <div class="form-group">
+                                            <textarea class="form-control" name="answer[<?php echo $question['id']; ?>]" rows="4" required></textarea>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+
+                        <div class="form-group text-center mb-5">
+                            <button type="submit" name="submit_exam" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Exam
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/js/dark-mode.js"></script>
+
+    <?php if ($action !== 'start' && !$hasResult): ?>
+    <script>
+        // Timer logic
+        const timeLimit = <?php echo $exam['time_limit']; ?>; // Time limit in minutes
+        let totalSeconds = timeLimit * 60;
+        const timerDisplay = document.getElementById('timer-display');
+        const timerElement = document.getElementById('exam-timer');
+        const examForm = document.getElementById('exam-form');
+
+        function updateTimer() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            
+            // Format display
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Add warning class if less than 5 minutes remaining
+            if (totalSeconds <= 300) {
+                timerElement.classList.add('warning');
+            }
+            
+            // Decrement timer
+            totalSeconds--;
+            
+            // If time is up, submit the form
+            if (totalSeconds < 0) {
+                clearInterval(timerInterval);
+                
+                // Disable form submission to prevent multiple submits
+                examForm.querySelectorAll('input, button').forEach(el => {
+                    el.disabled = true;
+                });
+                
+                // Show modal instead of alert
+                $('#timeUpModal').modal('show');
+                
+                // Submit form after a short delay to allow modal to be seen
+                setTimeout(() => {
+                    examForm.submit();
+                }, 3000);
+            }
+        }
+
+        // Initial call to set the timer display
+        updateTimer();
+        
+        // Set up interval to update timer every second
+        const timerInterval = setInterval(updateTimer, 1000);
+        
+        // Warn before leaving the page
+        window.addEventListener('beforeunload', function(e) {
+            // Cancel the event
+            e.preventDefault();
+            // Chrome requires returnValue to be set
+            e.returnValue = 'Are you sure you want to leave? Your exam progress will be lost!';
+        });
+        
+        // Remove warning when submitting the form
+        examForm.addEventListener('submit', function() {
+            window.removeEventListener('beforeunload', function(){});
+        });
+    </script>
+
+    <!-- Time Up Modal -->
+    <div class="modal fade" id="timeUpModal" tabindex="-1" role="dialog" aria-labelledby="timeUpModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="timeUpModalLabel">
+                        <i class="fas fa-clock"></i> Time's Up!
+                    </h5>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="lead">Your exam time has expired.</p>
+                    <p>Your answers will be submitted automatically.</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Submitting...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</body>
+</html>

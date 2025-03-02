@@ -1,0 +1,181 @@
+<?php
+require_once 'Model.php';
+
+class Answer extends Model {
+    protected $table = 'answers';
+    
+    public function create(array $data) {
+        $query = "INSERT INTO answers (exam_id, stagiaire_id, question_id, answer_text, is_correct, graded_points, max_points) 
+                  VALUES (:exam_id, :stagiaire_id, :question_id, :answer_text, :is_correct, :graded_points, :max_points)";
+                  
+        $stmt = $this->db->prepare($query);
+        
+        $params = [
+            ':exam_id' => $data['exam_id'],
+            ':stagiaire_id' => $data['stagiaire_id'],
+            ':question_id' => $data['question_id'],
+            ':answer_text' => $data['answer_text'],
+            ':is_correct' => $data['is_correct'],
+            ':graded_points' => isset($data['graded_points']) ? $data['graded_points'] : null,
+            ':max_points' => isset($data['max_points']) ? $data['max_points'] : 1
+        ];
+        
+        if ($this->db->execute($stmt, $params)) {
+            return $this->db->lastInsertId();
+        }
+        
+        return false;
+    }
+    
+    public function update(array $data, $id) {
+        $query = "UPDATE answers SET 
+                  answer_text = :answer_text, 
+                  is_correct = :is_correct,
+                  graded_points = :graded_points
+                  WHERE id = :id";
+                  
+        $stmt = $this->db->prepare($query);
+        
+        $params = [
+            ':answer_text' => isset($data['answer_text']) ? $data['answer_text'] : null,
+            ':is_correct' => isset($data['is_correct']) ? $data['is_correct'] : null,
+            ':graded_points' => isset($data['graded_points']) ? $data['graded_points'] : null,
+            ':id' => $id
+        ];
+        
+        return $this->db->execute($stmt, $params);
+    }
+    
+    public function getAnswersByExamAndStagiaire($examId, $stagiaireId) {
+        $query = "SELECT a.*, q.question_text, q.question_type, q.options, q.correct_answer, q.points 
+                  FROM answers a
+                  JOIN questions q ON a.question_id = q.id
+                  WHERE a.exam_id = :exam_id AND a.stagiaire_id = :stagiaire_id";
+        $stmt = $this->db->prepare($query);
+        $params = [
+            ':exam_id' => $examId,
+            ':stagiaire_id' => $stagiaireId
+        ];
+        
+        $this->db->execute($stmt, $params);
+        
+        $answers = $this->db->resultSet($stmt);
+        
+        // Process each answer to handle JSON fields
+        foreach ($answers as &$answer) {
+            // Convert JSON options string to PHP array
+            if (!empty($answer['options'])) {
+                $answer['options'] = json_decode($answer['options'], true);
+            }
+            
+            // Convert answer_text to array for QCM if it's a JSON string
+            if ($answer['question_type'] === 'qcm' && !empty($answer['answer_text']) && 
+                ($answer['answer_text'][0] === '[' || $answer['answer_text'][0] === '{')) {
+                $answer['answer_text'] = json_decode($answer['answer_text'], true);
+            }
+            
+            // Convert correct_answer to array for QCM if it's a JSON string
+            if ($answer['question_type'] === 'qcm' && !empty($answer['correct_answer']) &&
+                ($answer['correct_answer'][0] === '[' || $answer['correct_answer'][0] === '{')) {
+                $answer['correct_answer'] = json_decode($answer['correct_answer'], true);
+            }
+        }
+        
+        return $answers;
+    }
+    
+    public function getAnswersByExam($examId) {
+        $query = "SELECT a.*, 
+                  q.question_text, q.question_type, q.options, q.correct_answer, q.points,
+                  u.username as stagiaire_name
+                  FROM answers a
+                  JOIN questions q ON a.question_id = q.id
+                  JOIN users u ON a.stagiaire_id = u.id
+                  WHERE a.exam_id = :exam_id
+                  ORDER BY a.stagiaire_id, q.id";
+        $stmt = $this->db->prepare($query);
+        $params = [':exam_id' => $examId];
+        
+        $this->db->execute($stmt, $params);
+        
+        $answers = $this->db->resultSet($stmt);
+        
+        // Process each answer to handle JSON fields
+        foreach ($answers as &$answer) {
+            // Convert JSON options string to PHP array
+            if (!empty($answer['options'])) {
+                $answer['options'] = json_decode($answer['options'], true);
+            }
+            
+            // Convert answer_text to array for QCM if it's a JSON string
+            if ($answer['question_type'] === 'qcm' && !empty($answer['answer_text']) && 
+                ($answer['answer_text'][0] === '[' || $answer['answer_text'][0] === '{')) {
+                $answer['answer_text'] = json_decode($answer['answer_text'], true);
+            }
+            
+            // Convert correct_answer to array for QCM if it's a JSON string
+            if ($answer['question_type'] === 'qcm' && !empty($answer['correct_answer']) &&
+                ($answer['correct_answer'][0] === '[' || $answer['correct_answer'][0] === '{')) {
+                $answer['correct_answer'] = json_decode($answer['correct_answer'], true);
+            }
+        }
+        
+        return $answers;
+    }
+    
+    public function gradeOpenAnswer($answerId, $points) {
+        $query = "UPDATE answers SET graded_points = :points WHERE id = :id";
+        $stmt = $this->db->prepare($query);
+        $params = [
+            ':points' => $points,
+            ':id' => $answerId
+        ];
+        
+        return $this->db->execute($stmt, $params);
+    }
+    
+    public function calculateTotalScore($examId, $stagiaireId) {
+        $query = "SELECT SUM(CASE WHEN a.is_correct = 1 THEN q.points 
+                               WHEN a.is_correct IS NULL THEN a.graded_points
+                               ELSE 0 END) as total_score,
+                  (SELECT total_points FROM exams WHERE id = :exam_id) as exam_total_points
+                  FROM answers a
+                  JOIN questions q ON a.question_id = q.id
+                  WHERE a.exam_id = :exam_id AND a.stagiaire_id = :stagiaire_id";
+        $stmt = $this->db->prepare($query);
+        $params = [
+            ':exam_id' => $examId,
+            ':stagiaire_id' => $stagiaireId
+        ];
+        
+        $this->db->execute($stmt, $params);
+        
+        $result = $this->db->single($stmt);
+        
+        return $result ? $result : ['total_score' => 0, 'exam_total_points' => 0];
+    }
+    
+    public function updateExamResult($examId, $stagiaireId, $totalScore, $totalPoints) {
+        // Calculate percentage score
+        $percentageScore = 0;
+        if ($totalPoints > 0) {
+            $percentageScore = round(($totalScore / $totalPoints) * 100);
+        }
+        
+        $query = "UPDATE results SET 
+                  score = :percentage_score, 
+                  total_score = :total_score,
+                  graded_by = :graded_by
+                  WHERE exam_id = :exam_id AND stagiaire_id = :stagiaire_id";
+        $stmt = $this->db->prepare($query);
+        $params = [
+            ':percentage_score' => $percentageScore,
+            ':total_score' => $totalScore,
+            ':graded_by' => $_SESSION['user_id'] ?? null,
+            ':exam_id' => $examId,
+            ':stagiaire_id' => $stagiaireId
+        ];
+        
+        return $this->db->execute($stmt, $params);
+    }
+}

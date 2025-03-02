@@ -1,0 +1,52 @@
+[26-Feb-2025 01:40:51 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\stagiaire\exams.php:49
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\exams.php on line 49
+[26-Feb-2025 07:11:32 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Database::bind() in C:\xampp\htdocs\new_exam_php\stagiaire\exams.php:49
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\exams.php on line 49
+[26-Feb-2025 07:51:06 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52
+[26-Feb-2025 08:04:44 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52
+[26-Feb-2025 08:40:22 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getAllStagiaireResults() in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php:60
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 60
+[26-Feb-2025 08:46:14 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getAllStagiaireResults() in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php:60
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 60
+[26-Feb-2025 08:46:15 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getAllStagiaireResults() in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php:60
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 60
+[26-Feb-2025 09:15:37 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52
+[26-Feb-2025 19:51:17 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52
+[26-Feb-2025 20:45:11 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 69
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 73
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 69
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 73
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 312
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 318
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 312
+[01-Mar-2025 15:58:13 Europe/Berlin] PHP Warning:  Undefined array key "score" in C:\xampp\htdocs\new_exam_php\stagiaire\dashboard.php on line 318
+[01-Mar-2025 16:06:21 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method Result::getResultDetailById() in C:\xampp\htdocs\new_exam_php\stagiaire\results.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\stagiaire\results.php on line 52

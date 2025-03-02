@@ -1,0 +1,86 @@
+[26-Feb-2025 01:13:13 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\new_exam_php/utils/Database.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:13:13 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\new_exam_php/utils/Database.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\new_exam_php\fix_login.php:21
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:18:37 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\new_exam_php/utils/Database.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:18:37 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\new_exam_php/utils/Database.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\new_exam_php\fix_login.php:21
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:18:46 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\new_exam_php/utils/Database.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:18:46 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\new_exam_php/utils/Database.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\new_exam_php\fix_login.php:21
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\fix_login.php on line 21
+[26-Feb-2025 01:21:46 Europe/Berlin] PHP Warning:  require_once(utils/Database.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\new_exam_php\create_test_users.php on line 4
+[26-Feb-2025 01:21:46 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'utils/Database.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\new_exam_php\create_test_users.php:4
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\create_test_users.php on line 4
+[26-Feb-2025 07:50:48 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\new_exam_php\exam.php on line 110
+[26-Feb-2025 07:50:48 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\new_exam_php\exam.php on line 110
+[27-Feb-2025 07:40:01 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\new_exam_php/vendor/autoload.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\new_exam_php\login.php on line 4
+[27-Feb-2025 07:40:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\new_exam_php/vendor/autoload.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\new_exam_php\login.php:4
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 4
+[27-Feb-2025 07:43:18 Europe/Berlin] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.1.0". You are running 8.0.30. in C:\xampp\htdocs\new_exam_php\vendor\composer\platform_check.php on line 24
+[27-Feb-2025 07:43:20 Europe/Berlin] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.1.0". You are running 8.0.30. in C:\xampp\htdocs\new_exam_php\vendor\composer\platform_check.php on line 24
+[27-Feb-2025 07:45:22 Europe/Berlin] Database Connection Error: SQLSTATE[HY000] [1045] Access denied for user 'username'@'localhost' (using password: YES)
+[27-Feb-2025 07:47:43 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Config\Database" not found in C:\xampp\htdocs\new_exam_php\login.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 52
+[27-Feb-2025 07:51:45 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Config\Database" not found in C:\xampp\htdocs\new_exam_php\login.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 52
+[27-Feb-2025 07:51:46 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Config\Database" not found in C:\xampp\htdocs\new_exam_php\login.php:52
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 52
+[27-Feb-2025 07:53:12 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:53:12 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:53:13 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:53:13 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:53:13 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:53:14 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "Utils\Session" not found in C:\xampp\htdocs\new_exam_php\login.php:103
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\new_exam_php\login.php on line 103
+[27-Feb-2025 07:58:15 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 07:58:15 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 07:58:28 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 07:58:28 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 07:58:54 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 07:58:54 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 07:59:09 Europe/Berlin] Login attempt - Username: teacher
+[27-Feb-2025 07:59:09 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 07:59:48 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 07:59:48 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 08:01:51 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 08:01:51 Europe/Berlin] Submitted CSRF Token: 0996f9c3701ccb525e32db89ad7745d6f78dffbb8b8ac568e884d92a6a5e54de
+[27-Feb-2025 08:01:51 Europe/Berlin] Session CSRF Token: b78935db5ee6cb7f92efbeb6b23506bf04c1770992a69b5fd98ca6c2035ce0d2
+[27-Feb-2025 08:01:51 Europe/Berlin] CSRF Token validation failed. Submitted: 0996f9c3701ccb525e32db89ad7745d6f78dffbb8b8ac568e884d92a6a5e54de, Expected: b78935db5ee6cb7f92efbeb6b23506bf04c1770992a69b5fd98ca6c2035ce0d2
+[27-Feb-2025 08:01:51 Europe/Berlin] Login failed: Invalid CSRF token
+[27-Feb-2025 08:01:57 Europe/Berlin] Login attempt - Username: admin
+[27-Feb-2025 08:01:57 Europe/Berlin] Submitted CSRF Token: b78935db5ee6cb7f92efbeb6b23506bf04c1770992a69b5fd98ca6c2035ce0d2
+[27-Feb-2025 08:01:57 Europe/Berlin] Session CSRF Token: a369740d02c90c8e723f4cc4e33d7dd8baf809d2b6264c819bb45bc06b16cde7
+[27-Feb-2025 08:01:57 Europe/Berlin] CSRF Token validation failed. Submitted: b78935db5ee6cb7f92efbeb6b23506bf04c1770992a69b5fd98ca6c2035ce0d2, Expected: a369740d02c90c8e723f4cc4e33d7dd8baf809d2b6264c819bb45bc06b16cde7
+[27-Feb-2025 08:01:57 Europe/Berlin] Login failed: Invalid CSRF token
