@@ -1,0 +1,13 @@
+{
+  "name": "php_exam",
+  "version": "1.0.0",
+  "description": "PHP Exam Project",
+  "main": "index.php",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No build process defined\"",
+    "dev": "echo \"Starting development server\" && php -S localhost:8000"
+  },
+  "author": "",
+  "license": "ISC"
+} 

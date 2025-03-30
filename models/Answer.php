@@ -5,8 +5,8 @@ class Answer extends Model {
     protected $table = 'answers';
     
     public function create(array $data) {
-        $query = "INSERT INTO answers (exam_id, stagiaire_id, question_id, answer_text, is_correct, graded_points, max_points) 
-                  VALUES (:exam_id, :stagiaire_id, :question_id, :answer_text, :is_correct, :graded_points, :max_points)";
+        $query = "INSERT INTO answers (exam_id, stagiaire_id, question_id, answer_text, is_correct, graded_points) 
+                  VALUES (:exam_id, :stagiaire_id, :question_id, :answer_text, :is_correct, :graded_points)";
                   
         $stmt = $this->db->prepare($query);
         
@@ -16,8 +16,7 @@ class Answer extends Model {
             ':question_id' => $data['question_id'],
             ':answer_text' => $data['answer_text'],
             ':is_correct' => $data['is_correct'],
-            ':graded_points' => isset($data['graded_points']) ? $data['graded_points'] : null,
-            ':max_points' => isset($data['max_points']) ? $data['max_points'] : 1
+            ':graded_points' => isset($data['graded_points']) ? $data['graded_points'] : null
         ];
         
         if ($this->db->execute($stmt, $params)) {
@@ -273,6 +272,36 @@ class Answer extends Model {
             ':exam_id' => $examId,
             ':stagiaire_id' => $stagiaireId
         ];
+        
+        return $this->db->execute($stmt, $params);
+    }
+    
+    /**
+     * Get all answers for a specific question
+     * 
+     * @param int $questionId The ID of the question
+     * @return array Array of answers for the specified question
+     */
+    public function getAnswersByQuestionId($questionId) {
+        $query = "SELECT * FROM answers WHERE question_id = :question_id";
+        $stmt = $this->db->prepare($query);
+        $params = [':question_id' => $questionId];
+        
+        $this->db->execute($stmt, $params);
+        
+        return $this->db->resultSet($stmt);
+    }
+    
+    /**
+     * Delete all answers for a specific question
+     * 
+     * @param int $questionId The ID of the question
+     * @return bool True if successful, false otherwise
+     */
+    public function deleteByQuestionId($questionId) {
+        $query = "DELETE FROM answers WHERE question_id = :question_id";
+        $stmt = $this->db->prepare($query);
+        $params = [':question_id' => $questionId];
         
         return $this->db->execute($stmt, $params);
     }

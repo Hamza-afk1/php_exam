@@ -139,80 +139,76 @@ $isConfigFileWritable = file_exists($configFile) && is_writable($configFile);
 
 // HTML header
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href='../assets/css/dark-mode.css' rel='stylesheet'>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - <?php echo SITE_NAME; ?></title>
+    <title>System Settings - <?php echo SITE_NAME; ?></title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../assets/css/admin-theme.css" rel="stylesheet">
+    <link href="../assets/css/dark-mode.css" rel="stylesheet">
     <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
+        .system-info-card {
+            transition: all 0.3s ease;
         }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        
+        .system-info-card:hover {
+            transform: translateY(-4px);
         }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
         }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
+        
+        .status-good {
+            background-color: var(--apple-green);
         }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
-            
+        
+        .status-bad {
+            background-color: #ff3b30;
         }
-        .card {
-            margin-bottom: 20px;
+        
+        .settings-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-right: 15px;
+            background: linear-gradient(135deg, rgba(0,113,227,0.1) 0%, rgba(0,113,227,0.2) 100%);
+            color: var(--apple-blue);
         }
     </style>
 </head>
-<body class="admin-page bg-gray-100">
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/admin/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <ul class="navbar-nav px-3">
-            
-        </ul>
-    </nav>    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/admin/index.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-            
-        </ul>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <a class="navbar-brand" href="<?php echo BASE_URL; ?>/admin/index.php">
+            <i class="fas fa-graduation-cap mr-2"></i><?php echo SITE_NAME; ?>
+        </a>
+        <div class="ml-auto">
+            <button id="dark-mode-toggle" class="btn btn-outline-secondary">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar">
                 <div class="sidebar-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/dashboard.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/index.php">
                                 <i class="fas fa-home"></i> Dashboard
                             </a>
                         </li>
@@ -238,11 +234,11 @@ $isConfigFileWritable = file_exists($configFile) && is_writable($configFile);
                         </li>
                     </ul>
                 </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
+                <div class="sidebar-footer">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
                             </a>
                         </li>
                     </ul>
@@ -250,164 +246,143 @@ $isConfigFileWritable = file_exists($configFile) && is_writable($configFile);
             </nav>
 
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">System Settings</h1>
+                <div class="page-header d-flex justify-content-between align-items-center pt-3">
+                    <h1>System Settings</h1>
                 </div>
-                
+
                 <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle mr-2"></i><?php echo htmlspecialchars($message); ?>
+                    </div>
                 <?php endif; ?>
-                
+
                 <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle mr-2"></i><?php echo htmlspecialchars($error); ?>
+                    </div>
                 <?php endif; ?>
-                
-                <!-- Site Settings Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-globe"></i> Site Settings</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" action="<?php echo BASE_URL; ?>/admin/settings.php">
-                            <div class="form-group">
-                                <label for="site_name">Site Name</label>
-                                <input type="text" class="form-control" id="site_name" name="site_name" value="<?php echo htmlspecialchars($siteName); ?>" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="site_description">Site Description</label>
-                                <textarea class="form-control" id="site_description" name="site_description" rows="2"><?php echo htmlspecialchars($siteDescription); ?></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="admin_email">Admin Email</label>
-                                <input type="email" class="form-control" id="admin_email" name="admin_email" value="<?php echo htmlspecialchars($adminEmail); ?>" required>
-                            </div>
-                            <button type="submit" name="update_site_settings" class="btn btn-primary" <?php echo !$isConfigFileWritable ? 'disabled' : ''; ?>>
-                                Save Settings
-                            </button>
-                            <?php if (!$isConfigFileWritable): ?>
-                                <div class="text-danger mt-2">
-                                    <i class="fas fa-exclamation-triangle"></i> Config file is not writable. Check file permissions.
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Site Settings Card -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex align-items-center">
+                                <div class="settings-icon">
+                                    <i class="fas fa-globe"></i>
                                 </div>
-                            <?php endif; ?>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- System Information Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-info-circle"></i> System Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-striped">
-                            <tbody>
-                                <tr>
-                                    <th>PHP Version</th>
-                                    <td><?php echo $phpVersion; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Server Software</th>
-                                    <td><?php echo $_SERVER['SERVER_SOFTWARE']; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Database</th>
-                                    <td>MySQL</td>
-                                </tr>
-                                <tr>
-                                    <th>Required Extensions</th>
-                                    <td>
-                                        <?php foreach ($extensionStatus as $ext => $loaded): ?>
-                                            <span class="badge badge-<?php echo $loaded ? 'success' : 'danger'; ?>">
-                                                <?php echo $ext; ?>
-                                            </span>
-                                        <?php endforeach; ?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Logs Directory</th>
-                                    <td>
-                                        <?php if ($isLogsDirWritable): ?>
-                                            <span class="text-success"><i class="fas fa-check"></i> Writable</span>
-                                        <?php else: ?>
-                                            <span class="text-danger"><i class="fas fa-times"></i> Not writable</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Maintenance Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-tools"></i> Maintenance</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Error Logs</h5>
-                                        <p class="card-text">Clear system error logs. This is useful for troubleshooting.</p>
-                                        <form method="post" action="<?php echo BASE_URL; ?>/admin/settings.php">
-                                            <button type="submit" name="clear_logs" class="btn btn-warning" <?php echo !$isLogsDirWritable ? 'disabled' : ''; ?>>
-                                                <i class="fas fa-trash-alt"></i> Clear Logs
-                                            </button>
-                                        </form>
+                                <h5 class="mb-0">Site Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="<?php echo BASE_URL; ?>/admin/settings.php">
+                                    <div class="form-group">
+                                        <label for="site_name">Site Name</label>
+                                        <input type="text" class="form-control" id="site_name" name="site_name" 
+                                               value="<?php echo htmlspecialchars($siteName); ?>" required>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Database Backup</h5>
-                                        <p class="card-text">Create a backup of your database. Recommended before major changes.</p>
-                                        <a href="#" class="btn btn-info disabled">
-                                            <i class="fas fa-database"></i> Backup Database
-                                        </a>
-                                        <div class="text-muted mt-2">
-                                            <small>This feature is not yet implemented.</small>
+                                    <div class="form-group">
+                                        <label for="site_description">Site Description</label>
+                                        <textarea class="form-control" id="site_description" name="site_description" 
+                                                  rows="3"><?php echo htmlspecialchars($siteDescription); ?></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="admin_email">Admin Email</label>
+                                        <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                                               value="<?php echo htmlspecialchars($adminEmail); ?>" required>
+                                    </div>
+                                    <button type="submit" name="update_site_settings" class="btn btn-primary" 
+                                            <?php echo !$isConfigFileWritable ? 'disabled' : ''; ?>>
+                                        <i class="fas fa-save mr-2"></i>Save Settings
+                                    </button>
+                                    <?php if (!$isConfigFileWritable): ?>
+                                        <div class="alert alert-danger mt-3">
+                                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                                            Config file is not writable. Check file permissions.
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- System Maintenance Card -->
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center">
+                                <div class="settings-icon">
+                                    <i class="fas fa-tools"></i>
                                 </div>
+                                <h5 class="mb-0">System Maintenance</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="<?php echo BASE_URL; ?>/admin/settings.php" class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Clear Error Logs</h6>
+                                            <p class="text-muted mb-0">Remove all entries from the error log file</p>
+                                        </div>
+                                        <button type="submit" name="clear_logs" class="btn btn-outline-danger" 
+                                                <?php echo !$isLogsDirWritable ? 'disabled' : ''; ?>>
+                                            <i class="fas fa-trash-alt mr-2"></i>Clear Logs
+                                        </button>
+                                    </div>
+                                    <?php if (!$isLogsDirWritable): ?>
+                                        <div class="alert alert-danger mt-3">
+                                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                                            Logs directory is not writable. Check directory permissions.
+                                        </div>
+                                    <?php endif; ?>
+                                </form>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Advanced Settings Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-wrench"></i> Advanced Settings</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Advanced settings will be implemented in a future update.
+
+                    <div class="col-md-4">
+                        <!-- System Information Card -->
+                        <div class="card system-info-card">
+                            <div class="card-header d-flex align-items-center">
+                                <div class="settings-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <h5 class="mb-0">System Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h6 class="mb-3">PHP Version</h6>
+                                    <p class="mb-0">
+                                        <span class="status-indicator <?php echo version_compare($phpVersion, '7.0.0', '>=') ? 'status-good' : 'status-bad'; ?>"></span>
+                                        <?php echo $phpVersion; ?>
+                                    </p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Required Extensions</h6>
+                                    <?php foreach ($extensionStatus as $ext => $loaded): ?>
+                                        <p class="mb-2">
+                                            <span class="status-indicator <?php echo $loaded ? 'status-good' : 'status-bad'; ?>"></span>
+                                            <?php echo $ext; ?>
+                                        </p>
+                                    <?php endforeach; ?>
+                                </div>
+
+                                <div>
+                                    <h6 class="mb-3">File Permissions</h6>
+                                    <p class="mb-2">
+                                        <span class="status-indicator <?php echo $isConfigFileWritable ? 'status-good' : 'status-bad'; ?>"></span>
+                                        Config File
+                                    </p>
+                                    <p class="mb-0">
+                                        <span class="status-indicator <?php echo $isLogsDirWritable ? 'status-good' : 'status-bad'; ?>"></span>
+                                        Logs Directory
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <p>Possible future settings include:</p>
-                        <ul>
-                            <li>Email notification settings</li>
-                            <li>File upload configurations</li>
-                            <li>Security settings (session timeout, password policies)</li>
-                            <li>Theme customization</li>
-                            <li>System-wide announcements</li>
-                        </ul>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/dark-mode.js"></script>
 </body>
 </html>
-
-<?php
-// Include footer
-require_once __DIR__ . '/includes/footer.php';
-?>
-<script src="../assets/js/dark-mode.js"></script>

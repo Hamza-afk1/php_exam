@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 // Load configuration and session
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../utils/Session.php';
+require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Exam.php';
 require_once __DIR__ . '/../models/Result.php';
@@ -21,7 +22,7 @@ if (!Session::isLoggedIn()) {
 }
 
 // Check if user is formateur
-if (Session::get('user_role') !== 'formateur') {
+if (Session::get('role') !== 'formateur') {
     header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
@@ -34,349 +35,275 @@ $userModel = new User();
 $examModel = new Exam();
 $resultModel = new Result();
 
-// Get result ID from query string (if viewing specific result)
-$resultId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
+// Get exams for this formateur (for filtering)
+$exams = $examModel->getExamsByFormateurId($formateurId);
 
-// Process form submissions
-$message = '';
-$error = '';
+// Handle filtering
+$examFilter = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
+$dateFilter = isset($_GET['date']) ? $_GET['date'] : '';
 
-// Get message from query string (for redirects)
-if (empty($message) && isset($_GET['message'])) {
-    $message = $_GET['message'];
-}
-
-// Get detailed result data if viewing a specific result
-$resultDetail = null;
-if ($resultId > 0) {
-    $resultDetail = $resultModel->getResultDetailById($resultId);
+try {
+    $db = new Database();
     
-    // Verify the result is for an exam created by this formateur
-    if ($resultDetail) {
-        $exam = $examModel->getById($resultDetail['exam_id']);
-        if (!$exam || $exam['formateur_id'] != $formateurId) {
-            $error = "You do not have permission to view this result.";
-            $resultDetail = null;
-        }
-    } else {
-        $error = "Result not found.";
+    // Build the query with filters
+    $query = "SELECT r.*, e.name as exam_name, u.username as stagiaire_name,
+                     COALESCE(e.passing_score, 70) as passing_score
+              FROM results r
+              JOIN exams e ON r.exam_id = e.id
+              JOIN users u ON r.stagiaire_id = u.id
+              WHERE e.formateur_id = :formateur_id";
+    
+    $params = [':formateur_id' => $formateurId];
+    
+    // Add exam filter if specified
+    if ($examFilter > 0) {
+        $query .= " AND r.exam_id = :exam_id";
+        $params[':exam_id'] = $examFilter;
     }
-}
-
-// Get all exams for this formateur (for filter dropdown)
-$formateur_exams = $examModel->getExamsByFormateurId($formateurId);
-
-// Get all results for exams created by this formateur
-if ($examId > 0) {
-    // Verify this exam belongs to the formateur
-    $exam = $examModel->getById($examId);
-    if (!$exam || $exam['formateur_id'] != $formateurId) {
-        $error = "You do not have permission to view results for this exam.";
-        $results = [];
-    } else {
-        // Get results for specific exam
-        $results = $resultModel->getResultsByExamId($examId);
+    
+    // Add date filter if specified
+    if (!empty($dateFilter)) {
+        $query .= " AND DATE(r.created_at) = :date";
+        $params[':date'] = $dateFilter;
     }
-} else {
-    // Get all results for all exams by this formateur
-    try {
-        $db = new Database();
-        $query = "SELECT r.*, e.name as exam_name, u.username as stagiaire_name,
-                         e.passing_score
+    
+    $query .= " ORDER BY r.created_at DESC";
+    
+    $stmt = $db->prepare($query);
+    $db->execute($stmt, $params);
+    $results = $db->resultSet($stmt);
+    
+    // Get statistics
+    // Average score
+    $avgQuery = "SELECT AVG(r.score) as avg_score
+                FROM results r
+                JOIN exams e ON r.exam_id = e.id
+                WHERE e.formateur_id = :formateur_id";
+    $stmt = $db->prepare($avgQuery);
+    $db->execute($stmt, [':formateur_id' => $formateurId]);
+    $avgScore = round($db->single($stmt)['avg_score'] ?? 0, 1);
+    
+    // Pass rate
+    $passQuery = "SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN r.score >= COALESCE(e.passing_score, 70) THEN 1 ELSE 0 END) as passed
                   FROM results r
                   JOIN exams e ON r.exam_id = e.id
-                  JOIN users u ON r.stagiaire_id = u.id
-                  WHERE e.formateur_id = :formateur_id
-                  ORDER BY r.created_at DESC";
-        $stmt = $db->prepare($query);
-        $db->execute($stmt, [':formateur_id' => $formateurId]);
-        $results = $db->resultSet($stmt);
-    } catch (Exception $e) {
-        $error = "Error: " . $e->getMessage();
-        $results = [];
-    }
+                  WHERE e.formateur_id = :formateur_id";
+    $stmt = $db->prepare($passQuery);
+    $db->execute($stmt, [':formateur_id' => $formateurId]);
+    $passData = $db->single($stmt);
+    $passRate = $passData['total'] > 0 ? round(($passData['passed'] / $passData['total']) * 100, 1) : 0;
+    
+    // Total students
+    $studentsQuery = "SELECT COUNT(DISTINCT r.stagiaire_id) as student_count
+                     FROM results r
+                     JOIN exams e ON r.exam_id = e.id
+                     WHERE e.formateur_id = :formateur_id";
+    $stmt = $db->prepare($studentsQuery);
+    $db->execute($stmt, [':formateur_id' => $formateurId]);
+    $studentCount = $db->single($stmt)['student_count'] ?? 0;
+    
+} catch (Exception $e) {
+    $error = "Error: " . $e->getMessage();
+    $results = [];
+    $avgScore = 0;
+    $passRate = 0;
+    $studentCount = 0;
 }
 
-// HTML header
+// Include header
+require_once __DIR__ . '/includes/header_fixed.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Results - <?php echo SITE_NAME; ?></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
-            
-        }
-        .results-filter {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            border: 1px solid #e9ecef;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/formateur/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-        </ul>
-    </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/exams.php">
-                                <i class="fas fa-clipboard-list"></i> My Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/questions.php">
-                                <i class="fas fa-question-circle"></i> Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/formateur/results.php">
-                                <i class="fas fa-chart-bar"></i> Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/profile.php">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-chart-bar mr-2"></i> Exam Results
+    </h1>
+    <p class="page-subtitle">View and analyze student performance</p>
+</div>
 
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Exam Results</h1>
-                </div>
-                
-                <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-                <?php endif; ?>
-                
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                <?php endif; ?>
-                
-                <?php if ($resultDetail): ?>
-                    <!-- View Detailed Result -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0">Result Details</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h5>Exam Information</h5>
-                                    <p><strong>Exam:</strong> <?php echo htmlspecialchars($resultDetail['exam_name']); ?></p>
-                                    <p><strong>Description:</strong> <?php echo htmlspecialchars($resultDetail['description'] ?? 'N/A'); ?></p>
-                                    <p>
-                                        <strong>Passing Score:</strong> <?php echo $resultDetail['passing_score']; ?>%
-                                    </p>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Stagiaire Information</h5>
-                                    <p><strong>Name:</strong> <?php echo htmlspecialchars($resultDetail['stagiaire_name']); ?></p>
-                                    <p><strong>Date Taken:</strong> <?php echo date('F j, Y g:i A', strtotime($resultDetail['created_at'])); ?></p>
-                                    <p>
-                                        <strong>Score:</strong> 
-                                        <span class="badge badge-<?php echo $resultDetail['score'] >= $resultDetail['passing_score'] ? 'success' : 'danger'; ?>">
-                                            <?php echo $resultDetail['score']; ?>%
-                                        </span>
-                                        <span class="ml-2">
-                                            (<?php echo $resultDetail['score'] >= $resultDetail['passing_score'] ? 'PASSED' : 'FAILED'; ?>)
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <h5 class="mb-3">Question Responses</h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>Question</th>
-                                            <th>Answer Given</th>
-                                            <th>Correct Answer</th>
-                                            <th>Result</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if (isset($resultDetail['answers']) && is_array($resultDetail['answers'])): ?>
-                                            <?php foreach ($resultDetail['answers'] as $answer): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($answer['question_text']); ?></td>
-                                                    <td><?php echo htmlspecialchars($answer['student_answer']); ?></td>
-                                                    <td><?php echo htmlspecialchars($answer['correct_answer']); ?></td>
-                                                    <td>
-                                                        <?php if ($answer['is_correct']): ?>
-                                                            <span class="text-success"><i class="fas fa-check"></i> Correct</span>
-                                                        <?php else: ?>
-                                                            <span class="text-danger"><i class="fas fa-times"></i> Incorrect</span>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <tr>
-                                                <td colspan="4" class="text-center">Detailed answer data not available.</td>
-                                            </tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <a href="<?php echo BASE_URL; ?>/formateur/results.php<?php echo $examId ? '?exam_id=' . $examId : ''; ?>" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Back to Results
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <!-- Results List -->
-                    <div class="results-filter card mb-4">
-                        <div class="card-body">
-                            <form method="get" action="<?php echo BASE_URL; ?>/formateur/results.php" class="form-inline">
-                                <div class="form-group mb-2">
-                                    <label for="exam_id" class="mr-2">Filter by Exam:</label>
-                                    <select class="form-control" id="exam_id" name="exam_id">
-                                        <option value="">All Exams</option>
-                                        <?php foreach ($formateur_exams as $exam): ?>
-                                            <option value="<?php echo $exam['id']; ?>" <?php echo $examId == $exam['id'] ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($exam['name']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary mb-2 ml-2">Filter</button>
-                                <?php if ($examId): ?>
-                                    <a href="<?php echo BASE_URL; ?>/formateur/results.php" class="btn btn-outline-secondary mb-2 ml-2">
-                                        Clear Filter
-                                    </a>
-                                <?php endif; ?>
-                            </form>
-                        </div>
-                    </div>
-                
-                    <?php if (empty($results)): ?>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No results found.
-                            <?php if ($examId): ?>
-                                No stagiaires have taken this exam yet.
-                            <?php else: ?>
-                                No stagiaires have taken any of your exams yet.
-                            <?php endif; ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Stagiaire</th>
-                                        <th>Exam</th>
-                                        <th>Score</th>
-                                        <th>Status</th>
-                                        <th>Date Taken</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($results as $result): ?>
-                                        <tr>
-                                            <td><?php echo $result['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($result['stagiaire_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($result['exam_name']); ?></td>
-                                            <td><?php echo $result['score']; ?>%</td>
-                                            <td>
-                                                <span class="badge badge-<?php echo $result['score'] >= $result['passing_score'] ? 'success' : 'danger'; ?>">
-                                                    <?php echo $result['score'] >= $result['passing_score'] ? 'PASSED' : 'FAILED'; ?>
-                                                </span>
-                                            </td>
-                                            <td><?php echo date('M d, Y', strtotime($result['created_at'])); ?></td>
-                                            <td>
-                                                <a href="<?php echo BASE_URL; ?>/formateur/results.php?id=<?php echo $result['id']; ?><?php echo $examId ? '&exam_id=' . $examId : ''; ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i> View Details
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-            </main>
+<?php if (isset($error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle mr-2"></i> <?php echo htmlspecialchars($error); ?>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+<?php endif; ?>
+
+<!-- Stats Cards -->
+<div class="dashboard-stats mb-4">
+    <div class="stat-card">
+        <i class="fas fa-file-alt stat-icon"></i>
+        <div class="stat-value"><?php echo count($exams); ?></div>
+        <div class="stat-label">Total Exams</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-users stat-icon"></i>
+        <div class="stat-value"><?php echo $studentCount; ?></div>
+        <div class="stat-label">Students</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-percentage stat-icon"></i>
+        <div class="stat-value"><?php echo $avgScore; ?>%</div>
+        <div class="stat-label">Average Score</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-check-circle stat-icon"></i>
+        <div class="stat-value"><?php echo $passRate; ?>%</div>
+        <div class="stat-label">Pass Rate</div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter mr-2"></i> Filter Results</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" action="results.php" class="form-inline">
+            <div class="form-group mr-3 mb-2">
+                <label for="exam_id" class="mr-2">Exam:</label>
+                <select class="form-control" id="exam_id" name="exam_id">
+                    <option value="0">All Exams</option>
+                    <?php foreach ($exams as $exam): ?>
+                        <option value="<?php echo $exam['id']; ?>" <?php echo $examFilter == $exam['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($exam['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group mr-3 mb-2">
+                <label for="date" class="mr-2">Date:</label>
+                <input type="date" class="form-control" id="date" name="date" value="<?php echo $dateFilter; ?>">
+            </div>
+            <button type="submit" class="btn btn-primary mb-2 mr-2">
+                <i class="fas fa-search mr-1"></i> Apply Filter
+            </button>
+            <a href="results.php" class="btn btn-outline-secondary mb-2">
+                <i class="fas fa-sync-alt mr-1"></i> Reset
+            </a>
+        </form>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-table mr-2"></i> Exam Results</h5>
+        <div>
+            <a href="#" class="btn btn-sm btn-outline-primary" id="export-results">
+                <i class="fas fa-file-download mr-1"></i> Export
+            </a>
         </div>
     </div>
+    <div class="card-body">
+        <?php if (empty($results)): ?>
+            <div class="empty-state">
+                <i class="fas fa-chart-bar empty-state-icon"></i>
+                <p class="empty-state-text">No results found for the selected filters.</p>
+                <p>Try changing your filter criteria or check back after students have taken your exams.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-hover" id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Exam</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Date Taken</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($results as $result): ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <?php 
+                                        if (!empty($result['stagiaire_name'])) {
+                                            echo htmlspecialchars($result['stagiaire_name']);
+                                        } else {
+                                            echo '<em class="text-muted">Unknown</em>';
+                                        }
+                                        ?>
+                                    </div>
+                                </td>
+                                <td><?php echo htmlspecialchars($result['exam_name']); ?></td>
+                                <td>
+                                    <span class="badge <?php echo $result['score'] >= $result['passing_score'] ? 'badge-success' : 'badge-danger'; ?>">
+                                        <?php echo $result['score']; ?>%
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if ($result['score'] >= $result['passing_score']): ?>
+                                        <span class="badge badge-success">Pass</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-danger">Fail</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo date('M d, Y H:i', strtotime($result['created_at'])); ?></td>
+                                <td>
+                                    <a href="view_result.php?id=<?php echo $result['id']; ?>" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="grade_exam.php?exam_id=<?php echo $result['exam_id']; ?>&stagiaire_id=<?php echo $result['stagiaire_id']; ?>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-pencil-alt"></i> Grade Open Questions
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<script>
+    // Export results to CSV
+    document.getElementById('export-results').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get the table
+        const table = document.getElementById('results-table');
+        if (!table) return;
+        
+        let csv = [];
+        
+        // Add headers
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        csv.push(headers.slice(0, -1).join(',')); // Exclude the Actions column
+        
+        // Add rows
+        Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+            const cells = Array.from(row.querySelectorAll('td')).map(td => {
+                // For cells with badges, get the text content
+                if (td.querySelector('.badge')) {
+                    return '"' + td.querySelector('.badge').textContent.trim() + '"';
+                }
+                // For other cells, just get the text
+                return '"' + td.textContent.trim() + '"';
+            });
+            
+            // Exclude the Actions column
+            csv.push(cells.slice(0, -1).join(','));
+        });
+        
+        // Create a CSV file and force download
+        const csvContent = 'data:text/csv;charset=utf-8,' + csv.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'exam_results.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
 
-<?php
-// Include footer
-require_once __DIR__ . '/includes/footer.php';
-?>
+<?php require_once __DIR__ . '/includes/footer_fixed.php'; ?>

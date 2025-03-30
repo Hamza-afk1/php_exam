@@ -24,8 +24,8 @@ body {
 
 /* Global Dark Mode Base */
 body.dark-mode {
-    background-color: var(--dark-bg-primary);
-    color: var(--dark-text-primary);
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
     transition: var(--theme-transition);
 }
 
@@ -64,19 +64,19 @@ body.dark-mode .border {
 /* Comprehensive Sidebar Styling */
 body.dark-mode .sidebar,
 body.dark-mode .sidebar-sticky {
-    background-color: var(--dark-bg-secondary) !important;
+    background-color: #2d2d2d !important;
     border-right: 1px solid var(--dark-border-color);
 }
 
 body.dark-mode .sidebar .nav-link {
-    color: var(--dark-text-secondary);
+    color: #e0e0e0;
     transition: var(--theme-transition);
 }
 
 body.dark-mode .sidebar .nav-link:hover,
 body.dark-mode .sidebar .nav-link.active {
-    color: var(--dark-text-primary);
-    background-color: var(--dark-bg-tertiary);
+    color: #ffffff;
+    background-color: #3d3d3d;
 }
 
 /* Sidebar Sign Out Button */
@@ -132,16 +132,28 @@ body.dark-mode .navbar {
     border-bottom: 1px solid var(--dark-border-color);
 }
 
+body.dark-mode .navbar-brand {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .navbar-brand i {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .navbar-brand:hover {
+    color: var(--dark-accent-primary) !important;
+}
+
 /* Card Styling */
 body.dark-mode .card {
-    background-color: var(--dark-bg-secondary);
-    border-color: var(--dark-border-color);
+    background-color: #2d2d2d !important;
+    border-color: #3d3d3d !important;
     color: var(--dark-text-primary);
 }
 
 body.dark-mode .card-header {
-    background-color: var(--dark-bg-tertiary);
-    border-bottom: 1px solid var(--dark-border-color);
+    background-color: #3d3d3d !important;
+    border-bottom-color: #4d4d4d !important;
 }
 
 body.dark-mode .card-footer {
@@ -151,33 +163,56 @@ body.dark-mode .card-footer {
 
 /* Table Styling */
 body.dark-mode .table {
-    color: var(--dark-text-primary);
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-secondary) !important;
 }
 
 body.dark-mode .table thead {
-    background-color: var(--dark-bg-tertiary);
-    color: var(--dark-text-primary);
+    background-color: var(--dark-bg-tertiary) !important;
+}
+
+body.dark-mode .table thead th {
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-tertiary) !important;
+    border-bottom-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table tbody tr {
+    background-color: var(--dark-bg-secondary) !important;
+}
+
+body.dark-mode .table tbody td {
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 body.dark-mode .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Form Controls */
 body.dark-mode .form-control {
-    background-color: var(--dark-bg-secondary);
-    border-color: var(--dark-border-color);
-    color: var(--dark-text-primary);
+    background-color: #2d2d2d !important;
+    border-color: #3d3d3d !important;
+    color: #e0e0e0 !important;
 }
 
 body.dark-mode .form-control:focus {
-    background-color: var(--dark-bg-tertiary);
-    border-color: var(--dark-accent-primary);
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    background-color: #3d3d3d !important;
+    border-color: #4d4d4d !important;
+    color: #ffffff !important;
 }
 
 /* Buttons */
@@ -198,38 +233,44 @@ body.dark-mode .btn-outline-primary {
 }
 
 body.dark-mode .btn-outline-secondary {
-    color: var(--dark-text-secondary);
-    border-color: var(--dark-border-color);
+    color: #e0e0e0 !important;
+    border-color: #4d4d4d !important;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background-color: #4d4d4d !important;
+    color: #ffffff !important;
 }
 
 /* Dropdown */
 body.dark-mode .dropdown-menu {
-    background-color: var(--dark-bg-secondary);
-    border-color: var(--dark-border-color);
+    background-color: #2d2d2d !important;
+    border-color: #3d3d3d !important;
 }
 
 body.dark-mode .dropdown-item {
-    color: var(--dark-text-primary);
+    color: #e0e0e0 !important;
 }
 
 body.dark-mode .dropdown-item:hover,
 body.dark-mode .dropdown-item:focus {
-    background-color: var(--dark-bg-tertiary);
-    color: var(--dark-text-primary);
+    background-color: #3d3d3d !important;
+    color: #ffffff !important;
 }
 
 /* Modal */
 body.dark-mode .modal-content {
-    background-color: var(--dark-bg-secondary);
+    background-color: #2d2d2d !important;
+    border-color: #3d3d3d !important;
     color: var(--dark-text-primary);
 }
 
 body.dark-mode .modal-header {
-    border-bottom: 1px solid var(--dark-border-color);
+    border-bottom-color: #3d3d3d !important;
 }
 
 body.dark-mode .modal-footer {
-    border-top: 1px solid var(--dark-border-color);
+    border-top-color: #3d3d3d !important;
 }
 
 /* Alert */
@@ -304,157 +345,6 @@ body.dark-mode .form-check-input:checked {
     border-color: var(--dark-accent-primary);
 }
 
-/* Comprehensive Table Styling */
-body.dark-mode .table-striped tbody tr:nth-of-type(even) {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-/* Card Styling */
-body.dark-mode .card.bg-light {
-    background-color: var(--dark-bg-tertiary) !important;
-    border-color: var(--dark-border-color);
-}
-
-body.dark-mode .card.bg-light .card-title {
-    color: var(--dark-text-primary);
-}
-
-body.dark-mode .card.bg-light .card-text {
-    color: var(--dark-text-secondary);
-}
-
-body.dark-mode .card.bg-light .btn-outline-secondary {
-    color: var(--dark-text-secondary);
-    border-color: var(--dark-border-color);
-}
-
-body.dark-mode .card.bg-light .btn-outline-secondary:hover {
-    background-color: var(--dark-bg-secondary);
-    color: var(--dark-text-primary);
-}
-
-/* List Group */
-body.dark-mode .list-group-item {
-    background-color: var(--dark-bg-secondary);
-    color: var(--dark-text-primary);
-    border-color: var(--dark-border-color);
-}
-
-body.dark-mode .list-group-item-action:hover {
-    background-color: var(--dark-bg-tertiary);
-}
-
-/* Alert Styling */
-body.dark-mode .alert-danger {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: var(--dark-text-primary);
-    border-color: var(--dark-accent-danger);
-}
-
-/* Dark Mode Toggle */
-#dark-mode-toggle {
-    background-color: transparent;
-    border: 1px solid var(--dark-border-color);
-    color: var(--dark-text-secondary);
-    transition: var(--theme-transition);
-}
-
-#dark-mode-toggle:hover {
-    background-color: var(--dark-bg-tertiary);
-    color: var(--dark-text-primary);
-}
-
-/* Scrollbar Styles (Webkit Browsers) */
-body.dark-mode::-webkit-scrollbar {
-    width: 12px;
-}
-
-body.dark-mode::-webkit-scrollbar-track {
-    background: var(--dark-bg-secondary);
-}
-
-body.dark-mode::-webkit-scrollbar-thumb {
-    background-color: var(--dark-bg-tertiary);
-    border-radius: 6px;
-    border: 3px solid var(--dark-bg-secondary);
-}
-
-/* Accessibility and Readability */
-body.dark-mode {
-    line-height: 1.6;
-    letter-spacing: 0.5px;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    body.dark-mode .navbar-collapse {
-        background-color: var(--dark-bg-secondary);
-    }
-}
-
-/* Smooth Transition for Theme Switch */
-body,
-body.dark-mode,
-body * {
-    transition: background-color 0.3s ease,
-                color 0.3s ease,
-                border-color 0.3s ease;
-}
-
-/* Dashboard Card Styling */
-.card {
-    border: none;
-    border-radius: 8px;
-    transition: var(--theme-transition);
-}
-
-body.dark-mode .card {
-    background-color: var(--dark-bg-secondary);
-    color: var(--dark-text-primary);
-}
-
-.card-header {
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    padding: 1rem;
-}
-
-body.dark-mode .card-header {
-    border-bottom-color: var(--dark-border-color);
-}
-
-.card-title {
-    font-weight: 600;
-    color: var(--dark-text-secondary);
-    margin-bottom: 1rem;
-}
-
-.card-text {
-    font-weight: bold;
-}
-
-/* Table Styling */
-.table {
-    margin-bottom: 0;
-}
-
-body.dark-mode .table {
-    color: var(--dark-text-primary);
-}
-
-body.dark-mode .table thead {
-    background-color: var(--dark-bg-tertiary);
-    color: var(--dark-text-secondary);
-}
-
-body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(255,255,255,0.05);
-}
-
-body.dark-mode .table-striped tbody tr:nth-of-type(even) {
-    background-color: rgba(0,0,0,0.1);
-}
-
 /* System Information Styling */
 body.dark-mode dl {
     color: var(--dark-text-primary);
@@ -469,4 +359,332 @@ body.dark-mode dt {
     .card-text {
         font-size: 2rem;
     }
+}
+
+/* Comprehensive Table Styling for Exams, Results, and Settings */
+body.dark-mode .table {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .table thead th {
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-tertiary) !important;
+    border-bottom-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table td {
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+/* Settings Page Specific */
+body.dark-mode .settings-section {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .settings-section label,
+body.dark-mode .settings-section .form-label {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .settings-section .text-muted {
+    color: var(--dark-text-secondary) !important;
+}
+
+/* Exam and Results Page Specific */
+body.dark-mode .exam-title,
+body.dark-mode .result-title,
+body.dark-mode .section-title {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .exam-description,
+body.dark-mode .result-description {
+    color: var(--dark-text-secondary) !important;
+}
+
+body.dark-mode .status,
+body.dark-mode .score,
+body.dark-mode .grade {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Form Controls in Dark Mode */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    background-color: var(--dark-bg-tertiary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-accent-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode select::placeholder,
+body.dark-mode textarea::placeholder {
+    color: var(--dark-text-secondary) !important;
+}
+
+body.dark-mode .form-group label {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode select option {
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+/* Card Content in Dark Mode */
+body.dark-mode .card {
+    background-color: var(--dark-bg-secondary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .card-header {
+    background-color: var(--dark-bg-tertiary) !important;
+    border-bottom-color: var(--dark-border-color) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .card-body {
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+/* Button Styles in Dark Mode */
+body.dark-mode .btn-primary {
+    background-color: var(--dark-accent-primary) !important;
+    border-color: var(--dark-accent-primary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .btn-light {
+    background-color: var(--dark-bg-tertiary) !important;
+    border-color: var(--dark-border-color) !important;
+    color: var(--dark-text-secondary) !important;
+}
+
+body.dark-mode .btn-outline-primary {
+    color: var(--dark-accent-primary) !important;
+    border-color: var(--dark-accent-primary) !important;
+}
+
+body.dark-mode .btn-outline-primary:hover {
+    background-color: var(--dark-accent-primary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .btn-outline-secondary {
+    color: var(--dark-text-secondary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background-color: var(--dark-bg-tertiary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .btn-outline-danger {
+    color: var(--dark-accent-danger) !important;
+    border-color: var(--dark-accent-danger) !important;
+}
+
+body.dark-mode .btn-outline-danger:hover {
+    background-color: var(--dark-accent-danger) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+/* Page-Specific Dark Mode Styles */
+body.dark-mode .page-content h1,
+body.dark-mode .page-content h2,
+body.dark-mode .page-content h3,
+body.dark-mode .page-content h4,
+body.dark-mode .page-content h5,
+body.dark-mode .page-content h6,
+body.dark-mode .page-content p,
+body.dark-mode .page-content span,
+body.dark-mode .page-content div,
+body.dark-mode .page-content label,
+body.dark-mode .page-content td,
+body.dark-mode .page-content th {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Exams Page Specific */
+body.dark-mode .exams-page h1,
+body.dark-mode .exams-page .exam-name,
+body.dark-mode .exams-page .exam-description,
+body.dark-mode .exams-page .time-limit,
+body.dark-mode .exams-page .passing-score,
+body.dark-mode .exams-page .formateur,
+body.dark-mode .exams-page th,
+body.dark-mode .exams-page td {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Results Page Specific */
+body.dark-mode .results-page h1,
+body.dark-mode .results-page .stagiaire,
+body.dark-mode .results-page .exam,
+body.dark-mode .results-page .score,
+body.dark-mode .results-page .status,
+body.dark-mode .results-page .graded-by,
+body.dark-mode .results-page .date,
+body.dark-mode .results-page th,
+body.dark-mode .results-page td {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Settings Page Specific */
+body.dark-mode .settings-page h1,
+body.dark-mode .settings-page label,
+body.dark-mode .settings-page .setting-name,
+body.dark-mode .settings-page .setting-value,
+body.dark-mode .settings-page .setting-description,
+body.dark-mode .settings-page th,
+body.dark-mode .settings-page td {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Table Headers in Dark Mode */
+body.dark-mode table th {
+    background-color: var(--dark-bg-tertiary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+/* Table Cells in Dark Mode */
+body.dark-mode table td {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Page Titles in Dark Mode */
+body.dark-mode .page-title,
+body.dark-mode .section-title {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Form Labels and Text in Dark Mode */
+body.dark-mode label,
+body.dark-mode .form-text,
+body.dark-mode .form-label {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Links in Dark Mode */
+body.dark-mode a:not(.btn),
+body.dark-mode .nav-link {
+    color: var(--dark-accent-primary) !important;
+}
+
+body.dark-mode a:not(.btn):hover,
+body.dark-mode .nav-link:hover {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Main Content Area */
+body.dark-mode main[role="main"] {
+    background-color: var(--dark-bg-primary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode main[role="main"] h1,
+body.dark-mode main[role="main"] h2,
+body.dark-mode main[role="main"] h3,
+body.dark-mode main[role="main"] h4,
+body.dark-mode main[role="main"] h5,
+body.dark-mode main[role="main"] h6,
+body.dark-mode main[role="main"] p,
+body.dark-mode main[role="main"] span,
+body.dark-mode main[role="main"] div {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Table Headers and Cells */
+body.dark-mode .table thead th,
+body.dark-mode .table th {
+    background-color: var(--dark-bg-tertiary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table td {
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+/* Page Headers */
+body.dark-mode .page-header h1,
+body.dark-mode .d-flex h1.h2 {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Welcome Card */
+body.dark-mode .welcome-card {
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .welcome-card .welcome-title {
+    color: var(--dark-text-primary) !important;
+}
+
+body.dark-mode .welcome-card .welcome-date {
+    color: var(--dark-text-secondary) !important;
+}
+
+/* Text Utilities */
+body.dark-mode .text-muted {
+    color: var(--dark-text-secondary) !important;
+}
+
+body.dark-mode .text-dark {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Header Title */
+body.dark-mode .navbar-brand,
+body.dark-mode .navbar a,
+body.dark-mode .navbar-text {
+    color: var(--dark-text-primary) !important;
+}
+
+/* Table Specific Styles */
+body.dark-mode .table {
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-secondary) !important;
+}
+
+body.dark-mode .table thead tr,
+body.dark-mode .table thead th,
+body.dark-mode .table th {
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-tertiary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table tbody tr td {
+    color: var(--dark-text-primary) !important;
+    background-color: var(--dark-bg-secondary) !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+body.dark-mode .table tbody tr:nth-of-type(odd) td {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .table tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* System Title in Header */
+body.dark-mode .navbar .fas.fa-graduation-cap {
+    color: var(--dark-text-primary) !important;
 }

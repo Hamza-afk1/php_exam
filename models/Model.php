@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../utils/Database.php';
 
 abstract class Model {
     protected $db;
@@ -12,6 +12,7 @@ abstract class Model {
     public function getAll() {
         $query = "SELECT * FROM " . $this->table;
         $stmt = $this->db->prepare($query);
+        $this->db->execute($stmt);
         return $this->db->resultSet($stmt);
     }
     

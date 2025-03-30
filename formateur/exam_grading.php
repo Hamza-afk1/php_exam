@@ -298,6 +298,6 @@ $pageTitle = "Grade Exam: " . $exam['name'];
 
 <?php
 // Include footer
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/includes/footer_fixed.php';
 ?>
 

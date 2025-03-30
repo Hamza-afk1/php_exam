@@ -1,13 +1,10 @@
 <?php
-// Include required files
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../utils/Session.php';
+// Include authentication check
+require_once __DIR__ . '/../auth_check.php';
 
-// Check if user is formateur
-Session::checkFormateur();
-
-// Get user data
+// Get user data - we know user is authenticated at this point
 $username = Session::get('username');
+$email = Session::get('email');
 ?>
 
 <!DOCTYPE html>
@@ -15,83 +12,378 @@ $username = Session::get('username');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFFFFF">
+    <meta name="color-scheme" content="light dark">
     <title>Formateur Dashboard - <?php echo SITE_NAME; ?></title>
+    
+    <!-- CSS Styles -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <link href="../assets/css/dark-mode.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>/formateur/includes/apple-theme.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>/formateur/includes/layout-fix.css" rel="stylesheet">
+    
     <style>
         body {
-            font-size: .875rem;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .sidebar {
+        
+        .page-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Top Navbar */
+        .top-navbar {
             position: fixed;
             top: 0;
-            bottom: 0;
             left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            right: 0;
+            height: 56px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1030;
         }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand i {
+            margin-right: 0.5rem;
+        }
+        
+        .navbar-brand:hover {
+            color: var(--apple-blue);
+            text-decoration: none;
+        }
+        
+        .toggle-sidebar {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            margin-right: 0.5rem;
+        }
+        
+        .navbar-nav {
+            margin-left: auto;
+            display: flex;
+            list-style: none;
+            margin: 0 0 0 auto;
+            padding: 0;
+        }
+        
+        .navbar-nav .nav-item {
+            margin-left: 0.5rem;
+        }
+        
+        .navbar-nav .nav-link {
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            color: var(--apple-blue);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0;
+            min-width: 10rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .dropdown-item {
+            display: block;
+            padding: 0.5rem 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background-color: var(--bg-secondary);
+            overflow-y: auto;
+            box-shadow: 1px 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
         .sidebar-sticky {
+            padding-top: 1rem;
+        }
+        
+        .sidebar .nav {
+            display: flex;
+            flex-direction: column;
+            padding-left: 0;
+            margin-bottom: 0;
+            list-style: none;
+        }
+        
+        .sidebar .nav-item {
+            margin: 0;
+        }
+        
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar .nav-link i {
+            width: 24px;
+            margin-right: 0.75rem;
+            text-align: center;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: var(--apple-blue);
+            background-color: var(--bg-tertiary);
+        }
+        
+        .sidebar .nav-link.active {
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            padding: 72px 16px 16px;
+            width: calc(100% - 240px);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease, width 0.3s ease;
             position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
+            z-index: 10;
             overflow-y: auto;
         }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .toggle-sidebar {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            body.sidebar-visible::after {
+                content: '';
+                position: fixed;
+                top: 56px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark fixed-top bg-primary flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/formateur/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
+    <!-- Navbar -->
+    <nav class="top-navbar">
+        <button class="toggle-sidebar" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <a class="navbar-brand" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
+            <i class="fas fa-graduation-cap"></i> <?php echo SITE_NAME; ?>
+        </a>
+        
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link" href="#" id="userDropdown">
+                    <i class="fas fa-user-circle mr-1"></i> <?php echo htmlspecialchars($username); ?>
+                </a>
+                <div class="dropdown-menu" id="userMenu">
+                    <a class="dropdown-item" href="<?php echo BASE_URL; ?>/formateur/profile.php">
+                        <i class="fas fa-user mr-2"></i> Profile
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo BASE_URL; ?>/logout.php">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                    </a>
+                </div>
             </li>
         </ul>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'exams.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/exams.php">
-                                <i class="fas fa-file-alt"></i> Manage Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'questions.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/questions.php">
-                                <i class="fas fa-question-circle"></i> Manage Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'results.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/results.php">
-                                <i class="fas fa-poll"></i> Exam Results
-                            </a>
-                        </li>
-                        <li class="nav-item mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-    <script src="../assets/js/dark-mode.js"></script>
+    <div class="page-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'exams.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/exams.php">
+                            <i class="fas fa-clipboard-list"></i> My Exams
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'questions.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/questions.php">
+                            <i class="fas fa-question-circle"></i> Questions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'results.php' || basename($_SERVER['PHP_SELF']) == 'view_result.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/results.php">
+                            <i class="fas fa-chart-bar"></i> Results
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/formateur/profile.php">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Page content starts here -->
+        </div>
+    </div>
+    
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Toggle sidebar on mobile
+            $('#sidebarToggle').click(function(e) {
+                e.preventDefault();
+                $('#sidebar').toggleClass('show');
+                $('body').toggleClass('sidebar-visible');
+            });
+            
+            // Toggle user dropdown menu
+            $('#userDropdown').click(function(e) {
+                e.preventDefault();
+                $('#userMenu').toggle();
+            });
+            
+            // Close dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#userDropdown').length) {
+                    $('#userMenu').hide();
+                }
+                
+                // Close sidebar when clicking outside on mobile
+                if ($(window).width() <= 768) {
+                    if (!$(e.target).closest('#sidebar').length && 
+                        !$(e.target).closest('#sidebarToggle').length && 
+                        $('#sidebar').hasClass('show')) {
+                        $('#sidebar').removeClass('show');
+                        $('body').removeClass('sidebar-visible');
+                    }
+                }
+            });
+            
+            // Theme toggle functionality
+            $('#themeToggle').click(function() {
+                $('body').toggleClass('dark-mode');
+                
+                // Change icon based on theme
+                if ($('body').hasClass('dark-mode')) {
+                    $(this).find('i').removeClass('fa-moon').addClass('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    $(this).find('i').removeClass('fa-sun').addClass('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            // Check saved theme preference
+            if (localStorage.getItem('theme') === 'dark') {
+                $('body').addClass('dark-mode');
+                $('#themeToggle').find('i').removeClass('fa-moon').addClass('fa-sun');
+            }
+            
+            // Adjust layout on window resize
+            $(window).resize(function() {
+                if ($(window).width() > 768) {
+                    $('#sidebar').removeClass('show');
+                    $('body').removeClass('sidebar-visible');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

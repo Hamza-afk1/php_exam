@@ -49,15 +49,20 @@ try {
     
     foreach ($results as $result) {
         $totalScore += $result['score'];
-        if ($result['score'] >= 70) { // Assuming 70% is passing score
+        
+        // Get exam details to check if passed
+        $exam = $examModel->getById($result['exam_id']);
+        $passingScore = $exam ? $exam['passing_score'] : 70;
+        
+        if ($result['score'] >= $passingScore) {
             $passedExams++;
         }
     }
     
-    $averageScore = $totalExams > 0 ? round($totalScore / $totalExams) : 0;
-    $passRate = $totalExams > 0 ? round(($passedExams / $totalExams) * 100) : 0;
+    $averageScore = $totalExams > 0 ? round($totalScore / $totalExams, 1) : 0;
+    $passRate = $totalExams > 0 ? round(($passedExams / $totalExams) * 100, 1) : 0;
 } catch (Exception $e) {
-    // Silently handle errors
+    // Handle the error gracefully
     $totalExams = 0;
     $averageScore = 0;
     $passRate = 0;
@@ -68,25 +73,25 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate form inputs
-    $validator = new Validator($_POST);
-    $validation = $validator->validate([
-        'username' => 'required|min:3',
-        'email' => 'required|email',
-        'full_name' => 'required'
-    ]);
+    // Validate input
+    $userData = [
+        'username' => trim($_POST['username']),
+        'email' => trim($_POST['email']),
+        'full_name' => trim($_POST['full_name']),
+        'phone' => isset($_POST['phone']) ? trim($_POST['phone']) : null,
+        'address' => isset($_POST['address']) ? trim($_POST['address']) : null,
+        'bio' => isset($_POST['bio']) ? trim($_POST['bio']) : null
+    ];
     
-    if (!$validation) {
-        $error = 'Please fill all required fields correctly.';
+    $validator = new Validator();
+    
+    if (!$validator->email($userData['email'])) {
+        $error = 'Please enter a valid email address.';
+    } elseif (strlen($userData['username']) < 3) {
+        $error = 'Username must be at least 3 characters long.';
+    } elseif (strlen($userData['full_name']) < 2) {
+        $error = 'Full name is required.';
     } else {
-        $userData = [
-            'username' => $_POST['username'],
-            'email' => $_POST['email'],
-            'full_name' => $_POST['full_name'],
-            'phone' => $_POST['phone'] ?? '',
-            'address' => $_POST['address'] ?? '',
-            'bio' => $_POST['bio'] ?? ''
-        ];
         
         // Check if username is already in use by another user
         $existingUser = $userModel->getByUsername($userData['username']);
@@ -132,274 +137,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// HTML header
+// Include header
+require_once __DIR__ . '/includes/header_fixed.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - <?php echo SITE_NAME; ?></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
-            
-        }
-        .profile-header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .profile-image {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .stat-card {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .stat-icon {
-            font-size: 2.5rem;
-            opacity: 0.8;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-        </ul>
-    </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/exams.php">
-                                <i class="fas fa-clipboard-list"></i> My Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/results.php">
-                                <i class="fas fa-chart-bar"></i> My Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/stagiaire/profile.php">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">My Profile</h1>
+<div id="mainContent" class="main-content">
+    <div class="content-header">
+        <h1><i class="fas fa-user"></i> My Profile</h1>
+        <p>View and manage your profile information</p>
                 </div>
                 
-                <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; border: 1px solid #dc3545; font-weight: 500;">
+            <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
+        </div>
                 <?php endif; ?>
                 
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+    <?php if (!empty($message)): ?>
+        <div class="alert alert-success" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid #28a745; font-weight: 500;">
+            <i class="fas fa-check-circle"></i> <?php echo $message; ?>
+        </div>
                 <?php endif; ?>
                 
-                <!-- Performance Stats -->
-                <div class="row mb-4">
-                    <div class="col-xl-4 col-md-6 mb-4">
-                        <div class="card border-left-primary stat-card h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                            Total Exams Taken</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $totalExams; ?></div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-id-card"></i> Profile Summary</h5>
                                     </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-clipboard-list fa-2x text-gray-300 stat-icon"></i>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name'] ?? $user['username']); ?>&background=0D8ABC&color=fff&size=128" class="rounded-circle img-thumbnail profile-image" alt="Profile Image">
+                    </div>
+                    <h4><?php echo htmlspecialchars($user['full_name'] ?? $user['username']); ?></h4>
+                    <p class="text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
+                    <p><small>Member since: <?php echo date('F Y', strtotime($user['created_at'])); ?></small></p>
                                     </div>
                                 </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Performance Summary</h5>
                             </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="mb-2"><i class="fas fa-clipboard-list fa-2x text-info"></i></div>
+                            <div class="h3"><?php echo $totalExams; ?></div>
+                            <div class="small text-muted">Exams</div>
                         </div>
+                        <div class="col-4">
+                            <div class="mb-2"><i class="fas fa-star fa-2x text-warning"></i></div>
+                            <div class="h3"><?php echo $averageScore; ?>%</div>
+                            <div class="small text-muted">Avg. Score</div>
                     </div>
-                    
-                    <div class="col-xl-4 col-md-6 mb-4">
-                        <div class="card border-left-success stat-card h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Average Score</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $averageScore; ?>%</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-percentage fa-2x text-gray-300 stat-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-4">
+                            <div class="mb-2"><i class="fas fa-trophy fa-2x text-success"></i></div>
+                            <div class="h3"><?php echo $passRate; ?>%</div>
+                            <div class="small text-muted">Pass Rate</div>
                         </div>
-                    </div>
-                    
-                    <div class="col-xl-4 col-md-6 mb-4">
-                        <div class="card border-left-info stat-card h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                            Pass Rate</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $passRate; ?>%</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-award fa-2x text-gray-300 stat-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-lg-4 col-xl-3">
-                        <div class="card mb-4">
-                            <div class="card-body text-center">
-                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name'] ?? $user['username']); ?>&size=200&background=28a745&color=fff" class="profile-image mb-3" alt="Profile Image">
-                                <h5 class="my-3"><?php echo htmlspecialchars($user['full_name'] ?? $user['username']); ?></h5>
-                                <p class="text-muted mb-1"><?php echo ucfirst($user['role']); ?></p>
-                                <p class="text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
-                                
-                                <div class="d-flex justify-content-center mt-3">
-                                    <?php if (!empty($user['phone'])): ?>
-                                        <a href="tel:<?php echo htmlspecialchars($user['phone']); ?>" class="btn btn-outline-success mx-1">
-                                            <i class="fas fa-phone"></i>
-                                        </a>
-                                    <?php endif; ?>
-                                    <a href="mailto:<?php echo htmlspecialchars($user['email']); ?>" class="btn btn-outline-success mx-1">
-                                        <i class="fas fa-envelope"></i>
-                                    </a>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Contact Information</h5>
+                </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <p class="mb-0 font-weight-bold">Username</p>
+                    <div class="mb-3">
+                        <div class="small text-muted">Phone</div>
+                        <div><?php echo htmlspecialchars($user['phone'] ?? 'Not provided'); ?></div>
                                     </div>
-                                    <div class="col-sm-8">
-                                        <p class="text-muted mb-0"><?php echo htmlspecialchars($user['username']); ?></p>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <p class="mb-0 font-weight-bold">Role</p>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        <p class="text-muted mb-0"><?php echo ucfirst($user['role']); ?></p>
-                                    </div>
-                                </div>
-                                <?php if (!empty($user['phone'])): ?>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-sm-4">
-                                            <p class="mb-0 font-weight-bold">Phone</p>
-                                        </div>
-                                        <div class="col-sm-8">
-                                            <p class="text-muted mb-0"><?php echo htmlspecialchars($user['phone']); ?></p>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (!empty($user['address'])): ?>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-sm-4">
-                                            <p class="mb-0 font-weight-bold">Address</p>
-                                        </div>
-                                        <div class="col-sm-8">
-                                            <p class="text-muted mb-0"><?php echo htmlspecialchars($user['address']); ?></p>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <p class="mb-0 font-weight-bold">Created</p>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        <p class="text-muted mb-0"><?php echo date('F j, Y', strtotime($user['created_at'])); ?></p>
-                                    </div>
+                    <div class="mb-3">
+                        <div class="small text-muted">Address</div>
+                        <div><?php echo htmlspecialchars($user['address'] ?? 'Not provided'); ?></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-lg-8 col-xl-9">
+        <div class="col-md-8">
                         <div class="card mb-4">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">Edit Profile</h5>
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-edit"></i> Edit Profile</h5>
                             </div>
                             <div class="card-body">
                                 <form method="post">
@@ -439,25 +260,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <input type="password" class="form-control" id="confirm_password" name="confirm_password">
                                     </div>
                                     
-                                    <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Update Profile
                                     </button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
-
 <?php
 // Include footer
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/includes/footer_fixed.php';
 ?>

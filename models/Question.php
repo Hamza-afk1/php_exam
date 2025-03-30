@@ -190,4 +190,14 @@ class Question extends Model {
         
         return $this->db->execute($stmt, $params);
     }
+    
+    /**
+     * Alias for getQuestionsByExam to maintain backward compatibility
+     * 
+     * @param int $examId The exam ID
+     * @return array Array of questions for the specified exam
+     */
+    public function getQuestionsByExamId($examId) {
+        return $this->getQuestionsByExam($examId);
+    }
 }

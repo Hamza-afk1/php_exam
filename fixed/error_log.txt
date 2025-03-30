@@ -84,3 +84,8 @@ Stack trace:
 [27-Feb-2025 08:01:57 Europe/Berlin] Session CSRF Token: a369740d02c90c8e723f4cc4e33d7dd8baf809d2b6264c819bb45bc06b16cde7
 [27-Feb-2025 08:01:57 Europe/Berlin] CSRF Token validation failed. Submitted: b78935db5ee6cb7f92efbeb6b23506bf04c1770992a69b5fd98ca6c2035ce0d2, Expected: a369740d02c90c8e723f4cc4e33d7dd8baf809d2b6264c819bb45bc06b16cde7
 [27-Feb-2025 08:01:57 Europe/Berlin] Login failed: Invalid CSRF token
+[12-Mar-2025 23:57:03 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\php_exam\fixed/config/config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\php_exam\fixed\index.php on line 3
+[12-Mar-2025 23:57:03 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\php_exam\fixed/config/config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\php_exam\fixed\index.php:3
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\php_exam\fixed\index.php on line 3

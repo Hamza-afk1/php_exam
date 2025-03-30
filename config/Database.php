@@ -1,5 +1,12 @@
 <?php
-class Database {
+/**
+ * LEGACY DATABASE CLASS - Use utils/Database.php instead for new code
+ */
+
+// Only define this class if it doesn't already exist
+if (!class_exists('LegacyDatabase')) {
+
+class LegacyDatabase {
     private $host = DB_HOST;
     private $user = DB_USER;
     private $pass = DB_PASS;
@@ -22,9 +29,12 @@ class Database {
         
         // Create a new PDO instance
         try {
+            error_log("Attempting database connection to: " . $this->host);
             $this->conn = new PDO($dsn, $this->user, $this->pass, $options);
+            error_log("Database connection successful");
         } catch(PDOException $e) {
             $this->error = $e->getMessage();
+            error_log("Database connection error: " . $this->error);
             echo 'Connection Error: ' . $this->error;
         }
     }
@@ -36,12 +46,36 @@ class Database {
     
     // Prepare statement with query
     public function prepare($sql) {
-        return $this->conn->prepare($sql);
+        try {
+            error_log("Preparing SQL: " . $sql);
+            $stmt = $this->conn->prepare($sql);
+            if ($stmt) {
+                error_log("SQL preparation successful");
+            } else {
+                error_log("SQL preparation failed");
+            }
+            return $stmt;
+        } catch (PDOException $e) {
+            error_log("Error preparing SQL: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     // Execute statement
     public function execute($stmt, $params = []) {
-        return $stmt->execute($params);
+        try {
+            error_log("Executing statement with params: " . json_encode($params));
+            $result = $stmt->execute($params);
+            if ($result) {
+                error_log("Statement execution successful");
+            } else {
+                error_log("Statement execution failed");
+            }
+            return $result;
+        } catch (PDOException $e) {
+            error_log("Error executing statement: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     // Get row count
@@ -50,15 +84,33 @@ class Database {
     }
     
     // Get single record as object
-    public function single($stmt) {
-        $this->execute($stmt);
-        return $stmt->fetch();
+    public function single($stmt, $params = []) {
+        try {
+            if (!empty($params)) {
+                $this->execute($stmt, $params);
+            }
+            $result = $stmt->fetch();
+            error_log("Fetched single result: " . ($result ? "Found" : "Not found"));
+            return $result;
+        } catch (PDOException $e) {
+            error_log("Error fetching single result: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     // Get record set as array of objects
-    public function resultSet($stmt) {
-        $this->execute($stmt);
-        return $stmt->fetchAll();
+    public function resultSet($stmt, $params = []) {
+        try {
+            if (!empty($params)) {
+                $this->execute($stmt, $params);
+            }
+            $results = $stmt->fetchAll();
+            error_log("Fetched result set. Count: " . count($results));
+            return $results;
+        } catch (PDOException $e) {
+            error_log("Error fetching result set: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     // Get last id inserted
@@ -66,4 +118,11 @@ class Database {
         return $this->conn->lastInsertId();
     }
 }
+
+// For backward compatibility, make Database an alias of LegacyDatabase if the Database class doesn't exist yet
+if (!class_exists('Database')) {
+    class_alias('LegacyDatabase', 'Database');
+}
+
+} // End class_exists check
 ?>

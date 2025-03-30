@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Form</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Form Test</h1>
+        
+        <button type="button" class="btn btn-primary mt-3" data-toggle="modal" data-target="#formModal">
+            Open Form Modal
+        </button>
+        
+        <div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="formModalLabel">Test Form</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="testForm">
+                            <div class="form-group">
+                                <label for="textInput">Text Input</label>
+                                <input type="text" class="form-control" id="textInput" placeholder="Enter text">
+                            </div>
+                            <div class="form-group">
+                                <label for="textareaInput">Textarea</label>
+                                <textarea class="form-control" id="textareaInput" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="selectInput">Select</label>
+                                <select class="form-control" id="selectInput">
+                                    <option>Option 1</option>
+                                    <option>Option 2</option>
+                                    <option>Option 3</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="saveButton">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Log when modal is shown
+            $('#formModal').on('shown.bs.modal', function() {
+                console.log('Modal shown');
+                
+                // Enable all inputs
+                $('#formModal input, #formModal textarea, #formModal select').prop('disabled', false).prop('readonly', false);
+                
+                // Log input status
+                $('#formModal input, #formModal textarea, #formModal select').each(function() {
+                    console.log($(this).attr('id') + ' disabled: ' + $(this).prop('disabled'));
+                });
+            });
+            
+            // Save button click
+            $('#saveButton').click(function() {
+                var textInput = $('#textInput').val();
+                var textareaInput = $('#textareaInput').val();
+                var selectInput = $('#selectInput').val();
+                
+                console.log('Text Input:', textInput);
+                console.log('Textarea Input:', textareaInput);
+                console.log('Select Input:', selectInput);
+                
+                alert('Form saved! Check console for values.');
+            });
+        });
+    </script>
+</body>
+</html> 

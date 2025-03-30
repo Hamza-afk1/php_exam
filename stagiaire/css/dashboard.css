@@ -1,0 +1,30 @@
+.result-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.result-score {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 3px;
+}
+
+.result-score.pass {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.result-score.fail {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+    margin-left: 10px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+} 

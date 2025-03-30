@@ -115,77 +115,34 @@ $exams = $examModel->getAll();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href='../assets/css/dark-mode.css' rel='stylesheet'>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Exams - <?php echo SITE_NAME; ?></title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../assets/css/admin-theme.css" rel="stylesheet">
     <link href="../assets/css/dark-mode.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
-            
-        }
-    </style>
 </head>
-<body class="admin-page bg-gray-100">
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/admin/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-        </ul>
-    </nav>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/admin/index.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-            
-        </ul>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <a class="navbar-brand" href="<?php echo BASE_URL; ?>/admin/index.php">
+            <i class="fas fa-graduation-cap mr-2"></i><?php echo SITE_NAME; ?>
+        </a>
+        <div class="ml-auto">
+            <button id="dark-mode-toggle" class="btn btn-outline-secondary">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar">
                 <div class="sidebar-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/dashboard.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/index.php">
                                 <i class="fas fa-home"></i> Dashboard
                             </a>
                         </li>
@@ -205,17 +162,17 @@ $exams = $examModel->getAll();
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/admin/settings.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/settings.php">
                                 <i class="fas fa-cog"></i> Settings
                             </a>
                         </li>
                     </ul>
                 </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
+                <div class="sidebar-footer">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
                             </a>
                         </li>
                     </ul>
@@ -223,189 +180,143 @@ $exams = $examModel->getAll();
             </nav>
 
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Manage Exams</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group mr-2">
-                            <button id="dark-mode-toggle" class="btn btn-outline-secondary">
-                                <i class="fas fa-moon"></i> Dark Mode
-                            </button>
-                        </div>
-                        <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=add" class="btn btn-sm btn-primary">
+                <div class="page-header d-flex justify-content-between align-items-center pt-3">
+                    <h1>Manage Exams</h1>
+                    <div class="btn-toolbar">
+                        <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=add" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Add New Exam
                         </a>
                     </div>
                 </div>
-                
+
                 <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle mr-2"></i><?php echo htmlspecialchars($message); ?>
+                    </div>
                 <?php endif; ?>
-                
+
                 <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle mr-2"></i><?php echo htmlspecialchars($error); ?>
+                    </div>
                 <?php endif; ?>
-                
-                <?php if ($action === 'add' || $action === 'edit'): ?>
-                    <!-- Add/Edit Exam Form -->
+
+                <?php if ($action === 'list'): ?>
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Time Limit</th>
+                                            <th>Passing Score</th>
+                                            <th>Formateur</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($exams as $exam): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($exam['name']); ?></td>
+                                                <td><?php echo htmlspecialchars(substr($exam['description'], 0, 100)) . '...'; ?></td>
+                                                <td><?php echo (int)$exam['time_limit']; ?> min</td>
+                                                <td><?php echo (int)$exam['passing_score']; ?>%</td>
+                                                <td>
+                                                    <?php 
+                                                        $formateur = array_filter($formateurs, function($f) use ($exam) {
+                                                            return $f['id'] == $exam['formateur_id'];
+                                                        });
+                                                        $formateur = reset($formateur);
+                                                        echo $formateur ? htmlspecialchars($formateur['username']) : 'N/A';
+                                                    ?>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=edit&id=<?php echo $exam['id']; ?>" 
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="<?php echo BASE_URL; ?>/admin/questions.php?exam_id=<?php echo $exam['id']; ?>" 
+                                                           class="btn btn-sm btn-outline-info">
+                                                            <i class="fas fa-list"></i>
+                                                        </a>
+                                                        <form method="post" action="<?php echo BASE_URL; ?>/admin/exams.php?action=delete&id=<?php echo $exam['id']; ?>" 
+                                                              class="d-inline" onsubmit="return confirm('Are you sure you want to delete this exam?');">
+                                                            <button type="submit" name="delete_exam" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
                     <div class="card">
                         <div class="card-header">
-                            <?php echo $action === 'add' ? 'Add New Exam' : 'Edit Exam'; ?>
+                            <h5 class="mb-0"><?php echo $action === 'add' ? 'Add New Exam' : 'Edit Exam'; ?></h5>
                         </div>
                         <div class="card-body">
                             <form method="post" action="<?php echo BASE_URL; ?>/admin/exams.php<?php echo $action === 'edit' ? '?action=edit&id=' . $examId : ''; ?>">
                                 <div class="form-group">
                                     <label for="name">Exam Name</label>
                                     <input type="text" class="form-control" id="name" name="name" required 
-                                        value="<?php echo $action === 'edit' ? htmlspecialchars($examData['name']) : ''; ?>">
+                                           value="<?php echo $action === 'edit' ? htmlspecialchars($examData['name']) : ''; ?>">
                                 </div>
                                 <div class="form-group">
                                     <label for="description">Description</label>
                                     <textarea class="form-control" id="description" name="description" rows="3"><?php echo $action === 'edit' ? htmlspecialchars($examData['description']) : ''; ?></textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label for="time_limit">Time Limit (in minutes)</label>
-                                    <input type="number" class="form-control" id="time_limit" name="time_limit" required min="1" max="240"
-                                        value="<?php echo $action === 'edit' ? (int)$examData['time_limit'] : '60'; ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="passing_score">Passing Score (%)</label>
-                                    <input type="number" class="form-control" id="passing_score" name="passing_score" required min="1" max="100"
-                                        value="<?php echo $action === 'edit' ? (int)$examData['passing_score'] : '70'; ?>">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="time_limit">Time Limit (minutes)</label>
+                                            <input type="number" class="form-control" id="time_limit" name="time_limit" required 
+                                                   min="1" max="240" value="<?php echo $action === 'edit' ? (int)$examData['time_limit'] : '60'; ?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="passing_score">Passing Score (%)</label>
+                                            <input type="number" class="form-control" id="passing_score" name="passing_score" required 
+                                                   min="1" max="100" value="<?php echo $action === 'edit' ? (int)$examData['passing_score'] : '70'; ?>">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="formateur_id">Assigned Formateur</label>
                                     <select class="form-control" id="formateur_id" name="formateur_id" required>
                                         <option value="">Select Formateur</option>
                                         <?php foreach ($formateurs as $formateur): ?>
-                                            <option value="<?php echo $formateur['id']; ?>" <?php echo ($action === 'edit' && $examData['formateur_id'] == $formateur['id']) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo $formateur['id']; ?>" 
+                                                    <?php echo ($action === 'edit' && $examData['formateur_id'] == $formateur['id']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($formateur['username']) . ' (' . htmlspecialchars($formateur['email']) . ')'; ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <button type="submit" name="<?php echo $action === 'add' ? 'add_exam' : 'update_exam'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'add' ? 'Add Exam' : 'Update Exam'; ?>
-                                </button>
-                                <a href="<?php echo BASE_URL; ?>/admin/exams.php" class="btn btn-secondary">Cancel</a>
+                                <div class="form-group mb-0">
+                                    <button type="submit" name="<?php echo $action === 'add' ? 'add_exam' : 'update_exam'; ?>" class="btn btn-primary">
+                                        <?php echo $action === 'add' ? 'Add Exam' : 'Update Exam'; ?>
+                                    </button>
+                                    <a href="<?php echo BASE_URL; ?>/admin/exams.php" class="btn btn-secondary">Cancel</a>
+                                </div>
                             </form>
                         </div>
-                    </div>
-                <?php elseif ($action === 'view'): ?>
-                    <!-- View Exam Details -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h4><?php echo htmlspecialchars($examData['name']); ?></h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Description:</strong> <?php echo htmlspecialchars($examData['description']); ?></p>
-                                    <p><strong>Time Limit:</strong> <?php echo (int)$examData['time_limit']; ?> minutes</p>
-                                    <p><strong>Passing Score:</strong> <?php echo (int)$examData['passing_score']; ?>%</p>
-                                    
-                                    <?php
-                                    // Get formateur info
-                                    $formateur = $userModel->getById($examData['formateur_id']);
-                                    ?>
-                                    <p><strong>Assigned Formateur:</strong> 
-                                        <?php echo $formateur ? htmlspecialchars($formateur['username']) : 'None'; ?>
-                                    </p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Created At:</strong> <?php echo date('Y-m-d H:i', strtotime($examData['created_at'])); ?></p>
-                                    
-                                    <div class="mt-3">
-                                        <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=edit&id=<?php echo $examId; ?>" class="btn btn-info">
-                                            <i class="fas fa-edit"></i> Edit Exam
-                                        </a>
-                                        <a href="<?php echo BASE_URL; ?>/admin/questions.php?exam_id=<?php echo $examId; ?>" class="btn btn-primary">
-                                            <i class="fas fa-question-circle"></i> Manage Questions
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Question List for this exam would go here -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Exam Questions</h5>
-                        </div>
-                        <div class="card-body">
-                            <p>This section would display all questions for this exam.</p>
-                            <div class="alert alert-info">
-                                The questions management functionality would be implemented separately in the questions.php file.
-                            </div>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <!-- Exam List Table -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Exam Name</th>
-                                    <th>Time Limit</th>
-                                    <th>Passing Score</th>
-                                    <th>Formateur</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($exams)): ?>
-                                    <tr>
-                                        <td colspan="7" class="text-center">No exams found.</td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($exams as $exam): ?>
-                                        <tr>
-                                            <td><?php echo $exam['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($exam['name']); ?></td>
-                                            <td><?php echo (int)$exam['time_limit']; ?> minutes</td>
-                                            <td><?php echo (int)$exam['passing_score']; ?>%</td>
-                                            <td>
-                                                <?php 
-                                                    $formateur = $userModel->getById($exam['formateur_id']);
-                                                    echo $formateur ? htmlspecialchars($formateur['username']) : 'None';
-                                                ?>
-                                            </td>
-                                            <td><?php echo date('Y-m-d', strtotime($exam['created_at'])); ?></td>
-                                            <td>
-                                                <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=view&id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="<?php echo BASE_URL; ?>/admin/exams.php?action=edit&id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form class="d-inline" method="post" action="<?php echo BASE_URL; ?>/admin/exams.php?id=<?php echo $exam['id']; ?>" 
-                                                      onsubmit="return confirm('Are you sure you want to delete this exam?');">
-                                                    <button type="submit" name="delete_exam" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
                     </div>
                 <?php endif; ?>
             </main>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/dark-mode.js"></script>
 </body>
 </html>
-
-<?php
-// Include footer
-require_once __DIR__ . '/includes/footer.php';
-?>
-<script src="../assets/js/dark-mode.js"></script>

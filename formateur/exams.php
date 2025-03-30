@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 // Load configuration and session
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../utils/Session.php';
+require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Exam.php';
 require_once __DIR__ . '/../models/Question.php';
@@ -21,7 +22,7 @@ if (!Session::isLoggedIn()) {
 }
 
 // Check if user is formateur
-if (Session::get('user_role') !== 'formateur') {
+if (Session::get('role') !== 'formateur') {
     header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
@@ -32,7 +33,7 @@ $formateurId = Session::get('user_id');
 // Initialize models
 $userModel = new User();
 $examModel = new Exam();
-// $questionModel = new Question();
+$questionModel = new Question();
 
 // Get action from request
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
@@ -48,338 +49,280 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $examData = [
             'name' => $_POST['name'],
             'description' => $_POST['description'],
-            'time_limit' => (int)$_POST['time_limit'],
-            'passing_score' => (int)$_POST['passing_score'],
-            'formateur_id' => $formateurId  // Always use the current formateur's ID
+            'time_limit' => $_POST['time_limit'],
+            'formateur_id' => $formateurId
         ];
         
         if (isset($_POST['add_exam'])) {
             // Add new exam
-            $result = $examModel->create($examData);
-            if ($result) {
+            if ($examModel->create($examData)) {
                 $message = "Exam added successfully!";
-                // Redirect to list view
+                // Redirect to list view to avoid resubmission
                 header('Location: ' . BASE_URL . '/formateur/exams.php?message=' . urlencode($message));
                 exit;
             } else {
-                $error = "Failed to add exam.";
+                $error = "Failed to add exam!";
             }
-        } else if (isset($_POST['update_exam']) && $examId > 0) {
-            // Verify this exam belongs to the current formateur
-            $currentExam = $examModel->getById($examId);
-            if (!$currentExam || $currentExam['formateur_id'] != $formateurId) {
-                $error = "You do not have permission to edit this exam.";
+        } else if (isset($_POST['update_exam'])) {
+            // Update existing exam
+            $examId = (int)$_POST['exam_id'];
+            if ($examModel->update($examData, $examId)) {
+                $message = "Exam updated successfully!";
+                header('Location: ' . BASE_URL . '/formateur/exams.php?message=' . urlencode($message));
+                exit;
             } else {
-                // Update existing exam
-                $result = $examModel->update($examData, $examId);
-                if ($result) {
-                    $message = "Exam updated successfully!";
-                    // Redirect to list view
-                    header('Location: ' . BASE_URL . '/formateur/exams.php?message=' . urlencode($message));
-                    exit;
-                } else {
-                    $error = "Failed to update exam.";
-                }
+                $error = "Failed to update exam!";
             }
         }
-    } else if (isset($_POST['delete_exam']) && $examId > 0) {
-        // Verify this exam belongs to the current formateur
-        $currentExam = $examModel->getById($examId);
-        if (!$currentExam || $currentExam['formateur_id'] != $formateurId) {
-            $error = "You do not have permission to delete this exam.";
+    } else if (isset($_POST['delete_exam'])) {
+        // Delete exam
+        $examId = (int)$_POST['exam_id'];
+        if ($examModel->delete($examId)) {
+            $message = "Exam deleted successfully!";
+            header('Location: ' . BASE_URL . '/formateur/exams.php?message=' . urlencode($message));
+            exit;
         } else {
-            // Delete exam
-            $result = $examModel->delete($examId);
-            if ($result) {
-                $message = "Exam deleted successfully!";
-                // Redirect to list view
-                header('Location: ' . BASE_URL . '/formateur/exams.php?message=' . urlencode($message));
-                exit;
-            } else {
-                $error = "Failed to delete exam.";
-            }
+            $error = "Failed to delete exam!";
         }
     }
 }
 
-// Get message from query string (for redirects)
-if (empty($message) && isset($_GET['message'])) {
+// Handle URL message and error parameters
+if (isset($_GET['message'])) {
     $message = $_GET['message'];
 }
-
-// Get exam data for edit form
-$examData = null;
-if (($action === 'edit' || $action === 'view') && $examId > 0) {
-    $examData = $examModel->getById($examId);
-    if (!$examData) {
-        $error = "Exam not found.";
-        $action = 'list';
-    } else if ($examData['formateur_id'] != $formateurId) {
-        $error = "You do not have permission to access this exam.";
-        $action = 'list';
-    }
+if (isset($_GET['error'])) {
+    $error = $_GET['error'];
 }
 
-// Get all exams for this formateur
-$exams = $examModel->getExamsByFormateurId($formateurId);
-
-// HTML header
+// Include header
+require_once __DIR__ . '/includes/header_fixed.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Exams - <?php echo SITE_NAME; ?></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-clipboard-list mr-2"></i> My Exams
+                </h1>
+                <p class="page-subtitle">Create and manage your examination materials</p>
+            </div>
+
+            <!-- Alerts for success and error messages -->
+            <?php if (!empty($message)): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($message); ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <?php endif; ?>
             
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/formateur/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-        </ul>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/formateur/exams.php">
-                                <i class="fas fa-clipboard-list"></i> My Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/questions.php">
-                                <i class="fas fa-question-circle"></i> Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/results.php">
-                                <i class="fas fa-chart-bar"></i> Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/profile.php">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle mr-2"></i> <?php echo htmlspecialchars($error); ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+            <?php endif; ?>
 
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Manage Exams</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=add" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus"></i> Create New Exam
+            <?php if ($action === 'list'): ?>
+                <!-- Exams List View -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list mr-2"></i> All Exams
+                        </h5>
+                        <a href="?action=add" class="btn btn-primary">
+                            <i class="fas fa-plus-circle mr-1"></i> Create New Exam
                         </a>
                     </div>
-                </div>
-                
-                <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-                <?php endif; ?>
-                
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                <?php endif; ?>
-                
-                <?php if ($action === 'add' || $action === 'edit'): ?>
-                    <!-- Add/Edit Exam Form -->
-                    <div class="card">
-                        <div class="card-header">
-                            <?php echo $action === 'add' ? 'Create New Exam' : 'Edit Exam'; ?>
-                        </div>
-                        <div class="card-body">
-                            <form method="post" action="<?php echo BASE_URL; ?>/formateur/exams.php<?php echo $action === 'edit' ? '?action=edit&id=' . $examId : ''; ?>">
-                                <div class="form-group">
-                                    <label for="name">Exam Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" required 
-                                        value="<?php echo $action === 'edit' ? htmlspecialchars($examData['name']) : ''; ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="description">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3"><?php echo $action === 'edit' ? htmlspecialchars($examData['description']) : ''; ?></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="time_limit">Time Limit (in minutes)</label>
-                                    <input type="number" class="form-control" id="time_limit" name="time_limit" required min="1" max="240"
-                                        value="<?php echo $action === 'edit' ? (int)$examData['time_limit'] : '60'; ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="passing_score">Passing Score (%)</label>
-                                    <input type="number" class="form-control" id="passing_score" name="passing_score" required min="1" max="100"
-                                        value="<?php echo $action === 'edit' ? (isset($examData['passing_score']) ? (int)$examData['passing_score'] : 60) : '60'; ?>">
-                                </div>
-                                <button type="submit" name="<?php echo $action === 'add' ? 'add_exam' : 'update_exam'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'add' ? 'Create Exam' : 'Update Exam'; ?>
-                                </button>
-                                <a href="<?php echo BASE_URL; ?>/formateur/exams.php" class="btn btn-secondary">Cancel</a>
-                            </form>
-                        </div>
-                    </div>
-                <?php elseif ($action === 'view'): ?>
-                    <!-- View Exam Details -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h4><?php echo htmlspecialchars($examData['name']); ?></h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Description:</strong> <?php echo htmlspecialchars($examData['description']); ?></p>
-                                    <p><strong>Time Limit:</strong> <?php echo (int)$examData['time_limit']; ?> minutes</p>
-                                    <p><strong>Passing Score:</strong> <?php echo isset($examData['passing_score']) ? (int)$examData['passing_score'] : 60; ?>%</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Created At:</strong> <?php echo date('Y-m-d H:i', strtotime($examData['created_at'])); ?></p>
-                                    
-                                    <div class="mt-3">
-                                        <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=edit&id=<?php echo $examId; ?>" class="btn btn-info">
-                                            <i class="fas fa-edit"></i> Edit Exam
-                                        </a>
-                                        <a href="<?php echo BASE_URL; ?>/formateur/questions.php?exam_id=<?php echo $examId; ?>" class="btn btn-primary">
-                                            <i class="fas fa-question-circle"></i> Manage Questions
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Question List for this exam would go here -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Exam Questions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <a href="<?php echo BASE_URL; ?>/formateur/questions.php?action=add&exam_id=<?php echo $examId; ?>" class="btn btn-success">
-                                    <i class="fas fa-plus"></i> Add New Question
+                    <div class="card-body">
+                        <?php
+                        // Get all exams for this formateur
+                        $exams = $examModel->getExamsByFormateurId($formateurId);
+                        
+                        if (empty($exams)):
+                        ?>
+                            <div class="empty-state">
+                                <i class="fas fa-clipboard-list empty-state-icon"></i>
+                                <p class="empty-state-text">You haven't created any exams yet.</p>
+                                <a href="?action=add" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle mr-1"></i> Create Your First Exam
                                 </a>
                             </div>
-                            
-                            <div class="alert alert-info">
-                                This section would display all questions for this exam.
-                                Complete the questions management functionality in the questions.php file.
-                            </div>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <!-- Exam List Table -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Exam Name</th>
-                                    <th>Time Limit</th>
-                                    <th>Passing Score</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($exams)): ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center">No exams found.</td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($exams as $exam): ?>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
                                         <tr>
-                                            <td><?php echo $exam['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($exam['name']); ?></td>
-                                            <td><?php echo (int)$exam['time_limit']; ?> minutes</td>
-                                            <td><?php echo (int)$exam['passing_score']; ?>%</td>
-                                            <td><?php echo date('Y-m-d', strtotime($exam['created_at'])); ?></td>
-                                            <td>
-                                                <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=view&id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=edit&id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form class="d-inline" method="post" action="<?php echo BASE_URL; ?>/formateur/exams.php?id=<?php echo $exam['id']; ?>" 
-                                                      onsubmit="return confirm('Are you sure you want to delete this exam?');">
-                                                    <button type="submit" name="delete_exam" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Time Limit</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($exams as $exam): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($exam['name']); ?></td>
+                                                <td><?php echo htmlspecialchars(substr($exam['description'], 0, 50)) . (strlen($exam['description']) > 50 ? '...' : ''); ?></td>
+                                                <td><?php echo $exam['time_limit']; ?> min</td>
+                                                <td><?php echo date('M d, Y', strtotime($exam['created_at'])); ?></td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="?action=edit&id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary" title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="questions.php?exam_id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-info" title="Manage Questions">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                                data-toggle="modal" 
+                                                                data-target="#deleteExamModal" 
+                                                                data-exam-id="<?php echo $exam['id']; ?>"
+                                                                data-exam-name="<?php echo htmlspecialchars($exam['name']); ?>"
+                                                                title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
-            </main>
+                </div>
+
+            <?php elseif ($action === 'add' || $action === 'edit'): ?>
+                <!-- Add/Edit Exam Form -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <?php if ($action === 'add'): ?>
+                                <i class="fas fa-plus-circle mr-2"></i> Create New Exam
+                            <?php else: ?>
+                                <i class="fas fa-edit mr-2"></i> Edit Exam
+                            <?php endif; ?>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php
+                        // If editing, get the exam data
+                        $examData = [];
+                        if ($action === 'edit' && $examId > 0) {
+                            $examData = $examModel->getById($examId);
+                            if (!$examData || $examData['formateur_id'] != $formateurId) {
+                                echo '<div class="alert alert-danger">Exam not found or you do not have permission to edit it.</div>';
+                                echo '<div class="text-center mt-3"><a href="exams.php" class="btn btn-primary">Back to Exams</a></div>';
+                                require_once __DIR__ . '/includes/footer_fixed.php';
+                                exit;
+                            }
+                        }
+                        ?>
+                        <form method="post" action="exams.php" class="needs-validation" novalidate>
+                            <?php if ($action === 'edit'): ?>
+                                <input type="hidden" name="exam_id" value="<?php echo $examId; ?>">
+                            <?php endif; ?>
+                            
+                            <div class="form-group">
+                                <label for="name">Exam Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                    value="<?php echo $action === 'edit' ? htmlspecialchars($examData['name']) : ''; ?>" required>
+                                <div class="invalid-feedback">Please provide an exam name.</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required><?php echo $action === 'edit' ? htmlspecialchars($examData['description']) : ''; ?></textarea>
+                                <div class="invalid-feedback">Please provide a description.</div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="time_limit">Time Limit (minutes)</label>
+                                    <input type="number" class="form-control" id="time_limit" name="time_limit" 
+                                        value="<?php echo $action === 'edit' ? $examData['time_limit'] : '60'; ?>" min="1" required>
+                                    <div class="invalid-feedback">Please provide a valid time limit.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group text-center mt-4">
+                                <a href="exams.php" class="btn btn-secondary mr-2">
+                                    <i class="fas fa-arrow-left mr-1"></i> Cancel
+                                </a>
+                                <?php if ($action === 'add'): ?>
+                                    <button type="submit" name="add_exam" class="btn btn-primary">
+                                        <i class="fas fa-plus-circle mr-1"></i> Create Exam
+                                    </button>
+                                <?php else: ?>
+                                    <button type="submit" name="update_exam" class="btn btn-success">
+                                        <i class="fas fa-save mr-1"></i> Save Changes
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+<!-- Delete Exam Modal -->
+<div class="modal fade" id="deleteExamModal" tabindex="-1" role="dialog" aria-labelledby="deleteExamModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteExamModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the exam "<span id="examNameToDelete"></span>"?</p>
+                <p class="text-danger">This action cannot be undone. All questions and results associated with this exam will also be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form method="post" action="exams.php" id="deleteExamForm">
+                    <input type="hidden" name="exam_id" id="examIdToDelete" value="">
+                    <button type="submit" name="delete_exam" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<script>
+    // JavaScript for form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            // Fetch all forms we want to apply validation to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+    
+    // JavaScript for delete modal
+    $('#deleteExamModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var examId = button.data('exam-id');
+        var examName = button.data('exam-name');
+        var modal = $(this);
+        modal.find('#examNameToDelete').text(examName);
+        modal.find('#examIdToDelete').val(examId);
+    });
+</script>
 
-<?php
-// Include footer
-require_once __DIR__ . '/includes/footer.php';
-?>
+<?php require_once __DIR__ . '/includes/footer_fixed.php'; ?>

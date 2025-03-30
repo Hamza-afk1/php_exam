@@ -7,9 +7,11 @@ error_reporting(E_ALL);
 // Load configuration and session
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../utils/Session.php';
+require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Exam.php';
 require_once __DIR__ . '/../models/Question.php';
+require_once __DIR__ . '/../models/Answer.php';
 
 // Start the session
 Session::init();
@@ -21,7 +23,7 @@ if (!Session::isLoggedIn()) {
 }
 
 // Check if user is formateur
-if (Session::get('user_role') !== 'formateur') {
+if (Session::get('role') !== 'formateur') {
     header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
@@ -33,518 +35,584 @@ $formateurId = Session::get('user_id');
 $userModel = new User();
 $examModel = new Exam();
 $questionModel = new Question();
+$answerModel = new Answer();
 
-// Get action from request
-$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+// Determine if we're editing a specific exam
 $examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
 $questionId = isset($_GET['question_id']) ? (int)$_GET['question_id'] : 0;
 
-// Initialize variables
+// Process form submissions
 $message = '';
 $error = '';
-$examData = null;
-$questions = [];
 
-// Verify this exam belongs to the current formateur if an exam ID is provided
-if ($examId > 0) {
-    $examData = $examModel->getById($examId);
-    if (!$examData) {
-        $error = "Exam not found.";
-    } else if ($examData['formateur_id'] != $formateurId) {
-        $error = "You do not have permission to access this exam.";
-    } else {
-        // Get questions for this exam
-        $questions = $questionModel->getQuestionsByExam($examId);
-    }
-}
-
-// Process form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_question']) || isset($_POST['update_question'])) {
+        // Add or update question
         $questionData = [
-            'exam_id' => $examId,
-            'question_type' => $_POST['question_type'],
+            'exam_id' => (int)$_POST['exam_id'],
             'question_text' => $_POST['question_text'],
-            'points' => (int)$_POST['points'] ?: 1
+            'question_type' => $_POST['question_type'],
+            'points' => isset($_POST['points']) ? (int)$_POST['points'] : 1
         ];
         
-        // Handle correct answers differently based on question type
-        if ($_POST['question_type'] === 'qcm') {
-            // For QCM, handle multiple possible correct answers as an array
-            if (isset($_POST['correct_answer']) && is_array($_POST['correct_answer']) && !empty($_POST['correct_answer'])) {
-                $questionData['correct_answer'] = json_encode($_POST['correct_answer']);
-            } else {
-                $error = "Please select at least one correct answer for the multiple choice question.";
-            }
+        // Handle correct answer based on question type
+        if ($questionData['question_type'] === 'qcm') {
+            // Multiple Choice - correct answers are checked options
+            $correctAnswers = isset($_POST['is_correct']) ? $_POST['is_correct'] : [];
+            $questionData['correct_answer'] = json_encode($correctAnswers);
+        } else if ($questionData['question_type'] === 'true_false') {
+            // True/False - correct answer is the checked option (0=True, 1=False)
+            $correctAnswer = isset($_POST['is_correct']) && !empty($_POST['is_correct']) ? $_POST['is_correct'][0] : null;
+            $questionData['correct_answer'] = $correctAnswer !== null ? ($correctAnswer == 0 ? 'True' : 'False') : '';
         } else {
-            // For open questions, use the text field
-            $questionData['correct_answer'] = $_POST['correct_answer'];
+            // Open Ended - correct answer is the model answer text
+            $questionData['correct_answer'] = isset($_POST['answer_text'][0]) ? $_POST['answer_text'][0] : '';
         }
         
-        // Handle options for QCM question type
-        if ($_POST['question_type'] === 'qcm') {
-            $options = [];
-            foreach ($_POST['option'] as $index => $option) {
-                if (!empty($option)) {
-                    $options[] = $option;
-                }
-            }
-            $questionData['options'] = $options;
-        }
-        
-        if (isset($_POST['add_question'])) {
-            // Add new question
-            $result = $questionModel->create($questionData);
-            if ($result) {
-                $message = "Question added successfully!";
-                // Reload the page to display updated list
-                header('Location: ' . BASE_URL . '/formateur/questions.php?exam_id=' . $examId . '&message=' . urlencode($message));
-                exit;
-            } else {
-                $error = "Failed to add question.";
-            }
-        } else if (isset($_POST['update_question']) && $questionId > 0) {
-            // Update existing question
-            $result = $questionModel->update($questionData, $questionId);
-            if ($result) {
-                $message = "Question updated successfully!";
-                // Reload the page to display updated list
-                header('Location: ' . BASE_URL . '/formateur/questions.php?exam_id=' . $examId . '&message=' . urlencode($message));
-                exit;
-            } else {
-                $error = "Failed to update question.";
-            }
-        }
-    } else if (isset($_POST['delete_question']) && $questionId > 0) {
-        // Delete question
-        $result = $questionModel->delete($questionId);
-        if ($result) {
-            $message = "Question deleted successfully!";
-            // Reload the page to display updated list
-            header('Location: ' . BASE_URL . '/formateur/questions.php?exam_id=' . $examId . '&message=' . urlencode($message));
-            exit;
+        // Validate exam_id belongs to this formateur
+        $exam = $examModel->getById($questionData['exam_id']);
+        if (!$exam || $exam['formateur_id'] != $formateurId) {
+            $error = "You don't have permission to add questions to this exam.";
         } else {
-            $error = "Failed to delete question.";
-        }
-    }
-}
-
-// Get message from query string (for redirects)
-if (empty($message) && isset($_GET['message'])) {
-    $message = $_GET['message'];
-}
-
-// Get question data for edit form
-$questionData = null;
-if ($action === 'edit' && $questionId > 0) {
-    // Get the specific question data
-    $questions = $questionModel->getQuestionsByExam($examId);
-    foreach ($questions as $q) {
-        if ($q['id'] == $questionId) {
-            $questionData = $q;
-            break;
-        }
-    }
-    
-    if (!$questionData) {
-        $error = "Question not found.";
-        $action = 'list';
-    }
-}
-
-// HTML header
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Questions - <?php echo SITE_NAME; ?></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/formateur/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-            <li class="nav-item text-nowrap">
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/logout.php">
-                    <i class="fas fa-sign-out-alt"></i> Sign out
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/dashboard.php">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/exams.php">
-                                <i class="fas fa-clipboard-list"></i> My Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/formateur/questions.php">
-                                <i class="fas fa-question-circle"></i> Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/results.php">
-                                <i class="fas fa-chart-bar"></i> Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/profile.php">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Manage Questions</h1>
-                    <?php if ($examData): ?>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="<?php echo BASE_URL; ?>/formateur/questions.php?action=add&exam_id=<?php echo $examId; ?>" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus"></i> Add Question
-                        </a>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                
-                <?php if ($message): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-                <?php endif; ?>
-                
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                <?php endif; ?>
-                
-                <?php if (!$examId): ?>
-                    <!-- Exam selection screen -->
-                    <div class="card">
-                        <div class="card-header">
-                            Select an Exam to Manage Questions
-                        </div>
-                        <div class="card-body">
-                            <?php 
-                            $exams = $examModel->getExamsByFormateurId($formateurId);
-                            if (count($exams) > 0): 
-                            ?>
-                                <div class="list-group">
-                                    <?php foreach ($exams as $exam): ?>
-                                        <a href="<?php echo BASE_URL; ?>/formateur/questions.php?exam_id=<?php echo $exam['id']; ?>" class="list-group-item list-group-item-action">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h5 class="mb-1"><?php echo htmlspecialchars($exam['name']); ?></h5>
-                                                <small><?php echo date('Y-m-d', strtotime($exam['created_at'])); ?></small>
-                                            </div>
-                                            <p class="mb-1"><?php echo htmlspecialchars($exam['description']); ?></p>
-                                            <small>Time limit: <?php echo $exam['time_limit']; ?> minutes</small>
-                                        </a>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php else: ?>
-                                <p>You haven't created any exams yet.</p>
-                                <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=add" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Create an Exam
-                                </a>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php elseif ($action === 'add' || $action === 'edit'): ?>
-                    <!-- Add/Edit Question Form -->
-                    <div class="card">
-                        <div class="card-header">
-                            <?php echo $action === 'add' ? 'Add New Question' : 'Edit Question'; ?> for <?php echo htmlspecialchars($examData['name']); ?>
-                        </div>
-                        <div class="card-body">
-                            <form method="post" action="<?php echo BASE_URL; ?>/formateur/questions.php?action=<?php echo $action; ?>&exam_id=<?php echo $examId; ?><?php echo $action === 'edit' ? '&question_id=' . $questionId : ''; ?>">
-                                <div class="form-group">
-                                    <label for="question_type">Question Type</label>
-                                    <select class="form-control" id="question_type" name="question_type" required onchange="toggleQuestionType()">
-                                        <option value="qcm" <?php echo ($action === 'edit' && $questionData['question_type'] === 'qcm') ? 'selected' : ''; ?>>Multiple Choice (QCM)</option>
-                                        <option value="open" <?php echo ($action === 'edit' && $questionData['question_type'] === 'open') ? 'selected' : ''; ?>>Open Question</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="question_text">Question Text</label>
-                                    <textarea class="form-control" id="question_text" name="question_text" rows="3" required><?php echo $action === 'edit' ? htmlspecialchars($questionData['question_text']) : ''; ?></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="points">Points</label>
-                                    <input type="number" class="form-control" id="points" name="points" min="1" required 
-                                           value="<?php echo $action === 'edit' ? htmlspecialchars($questionData['points']) : '1'; ?>">
-                                    <small class="form-text text-muted">
-                                        Points to award for this question. For QCM questions, this will be automatically assigned based on the total points for the exam.
-                                        <?php if ($action === 'add' && isset($_GET['question_type']) && $_GET['question_type'] === 'qcm'): ?>
-                                            <?php 
-                                            // Calculate default points for new QCM questions
-                                            $defaultPoints = $questionModel->calculateDefaultPoints($examId);
-                                            echo "Recommended points: " . $defaultPoints;
-                                            ?>
-                                        <?php endif; ?>
-                                    </small>
-                                </div>
-                                <div id="qcm_options" class="form-group">
-                                    <label>Options (Multiple Choice)</label>
-                                    <?php 
-                                    $options = ($action === 'edit' && isset($questionData['options'])) ? $questionData['options'] : ['', '', '', ''];
-                                    for ($i = 0; $i < 4; $i++): 
-                                        $optionValue = isset($options[$i]) ? $options[$i] : '';
-                                    ?>
-                                        <div class="input-group mb-2">
-                                            <div class="input-group-prepend">
-                                                <span class="input-group-text"><?php echo chr(65 + $i); ?></span>
-                                            </div>
-                                            <input type="text" class="form-control" name="option[]" placeholder="Option <?php echo chr(65 + $i); ?>" value="<?php echo htmlspecialchars($optionValue); ?>">
-                                        </div>
-                                    <?php endfor; ?>
-                                </div>
-                                <div class="form-group" id="qcm_answer">
-                                    <label for="correct_answer">Correct Answer(s) (for Multiple Choice)</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="correct_answer[]" value="A" id="correct_A" 
-                                            <?php echo ($action === 'edit' && $questionData['question_type'] === 'qcm' && 
-                                                (is_array($questionData['correct_answer']) ? 
-                                                    in_array('A', $questionData['correct_answer']) : 
-                                                    $questionData['correct_answer'] === 'A')) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="correct_A">A</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="correct_answer[]" value="B" id="correct_B"
-                                            <?php echo ($action === 'edit' && $questionData['question_type'] === 'qcm' && 
-                                                (is_array($questionData['correct_answer']) ? 
-                                                    in_array('B', $questionData['correct_answer']) : 
-                                                    $questionData['correct_answer'] === 'B')) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="correct_B">B</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="correct_answer[]" value="C" id="correct_C"
-                                            <?php echo ($action === 'edit' && $questionData['question_type'] === 'qcm' && 
-                                                (is_array($questionData['correct_answer']) ? 
-                                                    in_array('C', $questionData['correct_answer']) : 
-                                                    $questionData['correct_answer'] === 'C')) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="correct_C">C</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="correct_answer[]" value="D" id="correct_D"
-                                            <?php echo ($action === 'edit' && $questionData['question_type'] === 'qcm' && 
-                                                (is_array($questionData['correct_answer']) ? 
-                                                    in_array('D', $questionData['correct_answer']) : 
-                                                    $questionData['correct_answer'] === 'D')) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="correct_D">D</label>
-                                    </div>
-                                </div>
-                                <div class="form-group" id="open_answer">
-                                    <label for="correct_answer_open">Sample Answer (for Open Question)</label>
-                                    <textarea class="form-control" id="correct_answer_open" name="correct_answer" rows="3"><?php echo ($action === 'edit' && $questionData['question_type'] === 'open') ? htmlspecialchars($questionData['correct_answer']) : ''; ?></textarea>
-                                    <small class="form-text text-muted">This will be used as a reference for grading.</small>
-                                </div>
-                                <div class="form-group">
-                                    <a href="<?php echo BASE_URL; ?>/formateur/questions.php?exam_id=<?php echo $examId; ?>" class="btn btn-secondary">Cancel</a>
-                                    <button type="submit" name="<?php echo $action === 'add' ? 'add_question' : 'update_question'; ?>" class="btn btn-primary">
-                                        <?php echo $action === 'add' ? 'Add Question' : 'Update Question'; ?>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <!-- Question List Table -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h4><?php echo htmlspecialchars($examData['name']); ?> - Questions</h4>
-                                <a href="<?php echo BASE_URL; ?>/formateur/exams.php" class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Back to Exams
-                                </a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <?php if (count($questions) > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-bordered">
-                                        <thead class="bg-primary text-white">
-                                            <tr>
-                                                <th width="5%">#</th>
-                                                <th width="15%">Type</th>
-                                                <th width="40%">Question</th>
-                                                <th width="10%">Points</th>
-                                                <th width="30%">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php if ($questions): ?>
-                                                <?php foreach ($questions as $index => $question): ?>
-                                                    <tr>
-                                                        <td><?php echo $index + 1; ?></td>
-                                                        <td>
-                                                            <?php if ($question['question_type'] === 'qcm'): ?>
-                                                                <span class="badge badge-pill badge-primary">QCM</span>
-                                                            <?php else: ?>
-                                                                <span class="badge badge-pill badge-success">Open-ended</span>
-                                                            <?php endif; ?>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($question['question_text']); ?></td>
-                                                        <td><?php echo htmlspecialchars($question['points']); ?></td>
-                                                        <td class="text-center">
-                                                            <div class="btn-group btn-group-sm">
-                                                                <a href="<?php echo BASE_URL; ?>/formateur/questions.php?action=edit&exam_id=<?php echo $examId; ?>&question_id=<?php echo $question['id']; ?>" class="btn btn-primary">
-                                                                    <i class="fas fa-edit"></i> Edit
-                                                                </a>
-                                                                <form method="post" action="<?php echo BASE_URL; ?>/formateur/questions.php?exam_id=<?php echo $examId; ?>&question_id=<?php echo $question['id']; ?>" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this question?');">
-                                                                    <button type="submit" name="delete_question" class="btn btn-danger">
-                                                                        <i class="fas fa-trash"></i> Delete
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php else: ?>
-                                <p>No questions yet for this exam.</p>
-                            <?php endif; ?>
-                            <a href="<?php echo BASE_URL; ?>/formateur/questions.php?action=add&exam_id=<?php echo $examId; ?>" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Add New Question
-                            </a>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </main>
-        </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        // Function to toggle question type fields
-        function toggleQuestionType() {
-            const questionType = document.getElementById('question_type').value;
-            const qcmOptions = document.getElementById('qcm_options');
-            const qcmAnswer = document.getElementById('qcm_answer');
-            const openAnswer = document.getElementById('open_answer');
-            
-            if (questionType === 'qcm') {
-                qcmOptions.style.display = 'block';
-                qcmAnswer.style.display = 'block';
-                openAnswer.style.display = 'none';
-                document.getElementById('correct_answer_open').removeAttribute('required');
-            } else {
-                qcmOptions.style.display = 'none';
-                qcmAnswer.style.display = 'none';
-                openAnswer.style.display = 'block';
-                document.getElementById('correct_answer_open').setAttribute('required', 'required');
-            }
-        }
-        
-        // Validation for QCM questions
-        function validateForm(event) {
-            const questionType = document.getElementById('question_type').value;
-            
-            if (questionType === 'qcm') {
-                // Check if at least one correct answer is selected
-                const checkboxes = document.querySelectorAll('input[name="correct_answer[]"]:checked');
-                if (checkboxes.length === 0) {
-                    event.preventDefault();
-                    alert('Please select at least one correct answer for the multiple choice question.');
-                    return false;
-                }
-                
-                // Check if all options with selected correct answers have content
-                let missingOption = false;
-                checkboxes.forEach(function(checkbox) {
-                    const optionIndex = ['A', 'B', 'C', 'D'].indexOf(checkbox.value);
-                    if (optionIndex !== -1) {
-                        const optionField = document.getElementsByName('option[]')[optionIndex];
-                        if (!optionField.value.trim()) {
-                            missingOption = true;
+            if (isset($_POST['add_question'])) {
+                // Add new question
+                $questionId = $questionModel->create($questionData);
+                if ($questionId) {
+                    // Add answers
+                    $success = true;
+                    for ($i = 0; $i < count($_POST['answer_text']); $i++) {
+                        if (!empty(trim($_POST['answer_text'][$i]))) {
+                            $answerData = [
+                                'question_id' => $questionId,
+                                'answer_text' => $_POST['answer_text'][$i],
+                                'is_correct' => isset($_POST['is_correct']) && in_array($i, $_POST['is_correct']) ? 1 : 0,
+                                'exam_id' => $questionData['exam_id'],
+                                'stagiaire_id' => $formateurId
+                            ];
+                            if (!$answerModel->create($answerData)) {
+                                $success = false;
+                            }
                         }
                     }
-                });
-                
-                if (missingOption) {
-                    event.preventDefault();
-                    alert('All options marked as correct must have content.');
-                    return false;
+                    
+                    if ($success) {
+                        $message = "Question added successfully!";
+                        header('Location: ' . BASE_URL . '/formateur/questions_fixed.php?exam_id=' . $questionData['exam_id'] . '&message=' . urlencode($message));
+                        exit;
+                    } else {
+                        $error = "Failed to add all answers!";
+                    }
+                } else {
+                    $error = "Failed to add question!";
+                }
+            } else if (isset($_POST['update_question'])) {
+                // Update existing question
+                $questionId = (int)$_POST['question_id'];
+                $question = $questionModel->getById($questionId);
+                if (!$question || $question['exam_id'] != $questionData['exam_id']) {
+                    $error = "Question not found or you don't have permission to edit it.";
+                } else {
+                    if ($questionModel->update($questionData, $questionId)) {
+                        // Delete existing answers and add new ones
+                        $answerModel->deleteByQuestionId($questionId);
+                        
+                        $success = true;
+                        for ($i = 0; $i < count($_POST['answer_text']); $i++) {
+                            if (!empty(trim($_POST['answer_text'][$i]))) {
+                                $answerData = [
+                                    'question_id' => $questionId,
+                                    'answer_text' => $_POST['answer_text'][$i],
+                                    'is_correct' => isset($_POST['is_correct']) && in_array($i, $_POST['is_correct']) ? 1 : 0,
+                                    'exam_id' => $questionData['exam_id'],
+                                    'stagiaire_id' => $formateurId
+                                ];
+                                if (!$answerModel->create($answerData)) {
+                                    $success = false;
+                                }
+                            }
+                        }
+                        
+                        if ($success) {
+                            $message = "Question updated successfully!";
+                            header('Location: ' . BASE_URL . '/formateur/questions_fixed.php?exam_id=' . $questionData['exam_id'] . '&message=' . urlencode($message));
+                            exit;
+                        } else {
+                            $error = "Failed to update all answers!";
+                        }
+                    } else {
+                        $error = "Failed to update question!";
+                    }
                 }
             }
-            
-            return true;
         }
+    } else if (isset($_POST['delete_question'])) {
+        // Delete question
+        $questionId = (int)$_POST['question_id'];
+        $examId = (int)$_POST['exam_id'];
+        $question = $questionModel->getById($questionId);
         
-        // Call on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            toggleQuestionType();
-            
-            // Add form validation
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', validateForm);
+        // Check if the question exists and belongs to an exam owned by this formateur
+        if ($question) {
+            $exam = $examModel->getById($question['exam_id']);
+            if ($exam && $exam['formateur_id'] == $formateurId) {
+                // Delete the question and its answers
+                if ($questionModel->delete($questionId)) {
+                    $message = "Question deleted successfully!";
+                    header('Location: ' . BASE_URL . '/formateur/questions.php?exam_id=' . $examId . '&message=' . urlencode($message));
+                    exit;
+                } else {
+                    $error = "Failed to delete question!";
+                }
+            } else {
+                $error = "You don't have permission to delete this question.";
             }
+        } else {
+            $error = "Question not found!";
+        }
+    }
+}
+
+// Handle URL message and error parameters
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+}
+if (isset($_GET['error'])) {
+    $error = $_GET['error'];
+}
+
+// Include header
+require_once __DIR__ . '/includes/header_fixed.php';
+?>
+
+<!-- Main Content Structure -->
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-question-circle mr-2"></i> Question Management
+    </h1>
+    <p class="page-subtitle">Create and manage questions for your exams</p>
+</div>
+
+<!-- Alerts for success and error messages -->
+<?php if (!empty($message)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+<?php endif; ?>
+
+<?php if (!empty($error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle mr-2"></i> <?php echo htmlspecialchars($error); ?>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+<?php endif; ?>
+
+<!-- Action Buttons -->
+<div class="action-buttons mb-4">
+    <a href="add_question.php?exam_id=<?php echo $examId; ?>" class="btn btn-primary" <?php echo $examId ? '' : 'disabled'; ?>>
+        <i class="fas fa-plus-circle mr-1"></i> Add New Question
+    </a>
+    <a href="<?php echo BASE_URL; ?>/formateur/exams.php" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left mr-1"></i> Back to Exams
+    </a>
+</div>
+
+<!-- Exams List for Selection -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="fas fa-clipboard-list mr-2"></i> Select an Exam</h5>
+    </div>
+    <div class="card-body">
+        <?php
+        // Get all exams for this formateur
+        $exams = $examModel->getExamsByFormateurId($formateurId);
+        
+        if (empty($exams)):
+        ?>
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list empty-state-icon"></i>
+                <p class="empty-state-text">You haven't created any exams yet.</p>
+                <a href="<?php echo BASE_URL; ?>/formateur/exams.php?action=add" class="btn btn-primary">
+                    Create Your First Exam
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="row">
+                <?php foreach ($exams as $exam): ?>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card exam-card <?php echo $examId == $exam['id'] ? 'border-primary' : ''; ?>">
+                            <div class="card-body">
+                                <h5 class="card-title"><?php echo htmlspecialchars($exam['name']); ?></h5>
+                                <p class="card-text text-muted">
+                                    <?php echo htmlspecialchars(substr($exam['description'], 0, 100)) . (strlen($exam['description']) > 100 ? '...' : ''); ?>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge badge-info">
+                                        <?php 
+                                        // Count questions for this exam
+                                        $questionCount = count($questionModel->getQuestionsByExamId($exam['id']));
+                                        echo $questionCount . ' question' . ($questionCount !== 1 ? 's' : '');
+                                        ?>
+                                    </span>
+                                    <a href="?exam_id=<?php echo $exam['id']; ?>" class="btn btn-sm <?php echo $examId == $exam['id'] ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                        <?php echo $examId == $exam['id'] ? 'Selected' : 'Select'; ?>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php if ($examId): ?>
+    <?php
+    // Get the selected exam
+    $selectedExam = $examModel->getById($examId);
+    if ($selectedExam && $selectedExam['formateur_id'] == $formateurId):
+        // Get questions for this exam
+        $questions = $questionModel->getQuestionsByExamId($examId);
+    ?>
+        <!-- Questions List -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list mr-2"></i> Questions for "<?php echo htmlspecialchars($selectedExam['name']); ?>"
+                </h5>
+                <a href="add_question.php?exam_id=<?php echo $examId; ?>" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-1"></i> Add Question
+                </a>
+            </div>
+            <div class="card-body">
+                <?php if (empty($questions)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-question-circle empty-state-icon"></i>
+                        <p class="empty-state-text">No questions added to this exam yet.</p>
+                        <a href="add_question.php?exam_id=<?php echo $examId; ?>" class="btn btn-primary">
+                            <i class="fas fa-plus-circle mr-1"></i> Add Your First Question
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div class="questions-list">
+                        <?php foreach ($questions as $index => $question): ?>
+                            <div class="question-card mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <span class="badge badge-secondary mr-2">Q<?php echo $index + 1; ?></span>
+                                            <?php echo htmlspecialchars($question['question_text']); ?>
+                                        </h6>
+                                        <div>
+                                            <span class="badge badge-info mr-2"><?php echo $question['question_type']; ?></span>
+                                            <span class="badge badge-primary mr-2"><?php echo $question['points'] ?? 1; ?> pts</span>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn" 
+                                                        data-question-id="<?php echo $question['id']; ?>">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <a href="edit_question.php?question_id=<?php echo $question['id']; ?>&exam_id=<?php echo $examId; ?>" 
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                <a href="delete_question.php?question_id=<?php echo $question['id']; ?>&exam_id=<?php echo $examId; ?>&delete_question=1" 
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('Are you sure you want to delete this question? This action cannot be undone. All answers associated with this question will also be deleted.');">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <?php
+                                        // Get answers for this question
+                                        $answers = $answerModel->getAnswersByQuestionId($question['id']);
+                                        if (!empty($answers)):
+                                        ?>
+                                            <div class="answers-list">
+                                                <h6 class="text-muted mb-3">Answers:</h6>
+                                                <div class="row">
+                                                    <?php foreach ($answers as $answer): ?>
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="answer-item d-flex align-items-center">
+                                                                <i class="fas <?php echo $answer['is_correct'] ? 'fa-check-circle text-success' : 'fa-times-circle text-danger'; ?> mr-2"></i>
+                                                                <span><?php echo htmlspecialchars($answer['answer_text']); ?></span>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <p class="text-muted">No answers added to this question.</p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle mr-2"></i> The selected exam does not exist or you don't have permission to view it.
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
+
+<!-- Add Question Modal -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1" role="dialog" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addQuestionModalLabel">
+                    <i class="fas fa-plus-circle mr-2"></i> Add New Question
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="questionForm" method="post">
+                    <input type="hidden" name="exam_id" value="<?php echo $examId; ?>">
+                    <input type="hidden" name="question_id" id="question_id" value="">
+                    
+                    <div class="form-group">
+                        <label for="question_text">Question Text</label>
+                        <textarea class="form-control" id="question_text" name="question_text" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="question_type">Question Type</label>
+                            <select class="form-control" id="question_type" name="question_type">
+                                <option value="qcm">Multiple Choice</option>
+                                <option value="open">Open Ended</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="points">Points</label>
+                            <input type="number" class="form-control" id="points" name="points" value="1" min="1">
+                        </div>
+                    </div>
+                    
+                    <div id="answers-container">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Answers</h5>
+                            <button type="button" id="add-answer-btn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-plus"></i> Add Answer
+                            </button>
+                        </div>
+                        
+                        <div id="answer-rows">
+                            <!-- Answer rows will be added here dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3" id="question-type-info">
+                        <i class="fas fa-info-circle mr-2"></i> For multiple choice questions, check one or more correct answers.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" form="questionForm" class="btn btn-primary" id="save-question-btn" name="add_question">
+                    <i class="fas fa-plus-circle mr-1"></i> Add Question
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Function to add a new answer row
+        function addAnswerRow(index, value = '', isChecked = false) {
+            return `
+                <div class="form-group answer-row">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" name="is_correct[]" value="${index}" ${isChecked ? 'checked' : ''}>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" name="answer_text[]" placeholder="Answer text" value="${value}">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-danger remove-answer-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize answers
+        function initializeAnswers() {
+            $('#answer-rows').empty();
+            const questionType = $('#question_type').val();
             
-            // Dark mode toggle
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            if (darkModeToggle) {
-                darkModeToggle.addEventListener('click', function() {
-                    document.body.classList.toggle('dark-mode');
-                });
+            if (questionType === 'qcm') {
+                $('#answer-rows').append(addAnswerRow(0));
+                $('#answer-rows').append(addAnswerRow(1));
+                $('#add-answer-btn').show();
+                $('#question-type-info').html('<i class="fas fa-info-circle mr-2"></i> Check one or more correct answers.');
+            } else {
+                $('#answer-rows').append(addAnswerRow(0));
+                $('#add-answer-btn').hide();
+                $('#question-type-info').html('<i class="fas fa-info-circle mr-2"></i> Enter a model answer for reference.');
+            }
+        }
+
+        // Add answer button click handler
+        $(document).on('click', '#add-answer-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const answerCount = $('#answer-rows .answer-row').length;
+            $('#answer-rows').append(addAnswerRow(answerCount));
+        });
+
+        // Remove answer button click handler
+        $(document).on('click', '.remove-answer-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const answerRows = $('#answer-rows .answer-row');
+            const questionType = $('#question_type').val();
+
+            if (questionType === 'qcm') {
+                if (answerRows.length > 2) {
+                    $(this).closest('.answer-row').remove();
+                    // Renumber remaining answers
+                    $('#answer-rows .answer-row').each(function(index) {
+                        $(this).find('input[type="checkbox"]').val(index);
+                    });
+                } else {
+                    alert('Multiple choice questions must have at least 2 answers.');
+                }
+            } else {
+                if (answerRows.length > 1) {
+                    $(this).closest('.answer-row').remove();
+                    // Renumber remaining answers
+                    $('#answer-rows .answer-row').each(function(index) {
+                        $(this).find('input[type="checkbox"]').val(index);
+                    });
+                } else {
+                    alert('You must have at least one answer.');
+                }
             }
         });
-    </script>
-</body>
-</html>
-<?php
-// Include footer
-require_once __DIR__ . '/includes/footer.php';
-?>
+
+        // Question type change handler
+        $('#question_type').change(function() {
+            initializeAnswers();
+        });
+
+        // Initialize on page load
+        initializeAnswers();
+
+        // Reset form when modal is opened
+        $('#addQuestionModal').on('show.bs.modal', function() {
+            $('#questionForm')[0].reset();
+            $('#question_id').val('');
+            initializeAnswers();
+        });
+
+        // When Edit button is clicked (using event delegation)
+        $(document).on('click', '.edit-question-btn', function(e) {
+            e.preventDefault();
+            const questionId = $(this).data('question-id');
+            console.log('Edit button clicked for question ID:', questionId);
+            
+            // Reset form
+                $('#questionForm')[0].reset();
+            $('#question_id').val(questionId);
+            
+            // Set modal title and button
+            $('#addQuestionModalLabel').html('<i class="fas fa-edit mr-2"></i> Edit Question');
+            $('#save-question-btn').html('<i class="fas fa-save mr-1"></i> Save Changes').attr('name', 'update_question');
+            
+            // Force the modal to be shown
+            setTimeout(function() {
+                $('#addQuestionModal').modal('show');
+                console.log('Modal should be visible now (with timeout)');
+                console.log('BASE_URL value:', '<?php echo BASE_URL; ?>');
+                
+                // Fetch question data using an absolute path
+                $.ajax({
+                    url: 'get_question_json.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { id: questionId },
+                    beforeSend: function() {
+                        console.log('Sending AJAX request to:', 'get_question_json.php?id=' + questionId);
+                    },
+                    success: function(data) {
+                        console.log('Received data:', data);
+                        if (data.success) {
+                            const question = data.question;
+                            const answers = data.answers;
+                            
+                            // Fill form fields
+                            $('#question_text').val(question.question_text);
+                            $('#question_type').val(question.question_type);
+                            $('#points').val(question.points);
+                            
+                            // Clear existing answers
+                            $('#answer-rows').empty();
+                            
+                            // Add answers
+                            if (answers && answers.length > 0) {
+                                $.each(answers, function(index, answer) {
+                                    const row = addAnswerRow(index, answer.answer_text);
+                                    if (answer.is_correct == 1) {
+                                        row.find('input[type="checkbox"]').prop('checked', true);
+                                    }
+                                });
+                            } else {
+                                initializeAnswers();
+                            }
+                            
+                            // Update UI based on question type
+                            if (question.question_type === 'open') {
+                                $('#add-answer-btn').hide();
+                                $('#question-type-info').html('<i class="fas fa-info-circle mr-2"></i> Enter a model answer for reference.');
+                            } else {
+                                $('#add-answer-btn').show();
+                                $('#question-type-info').html('<i class="fas fa-info-circle mr-2"></i> Check one or more correct answers.');
+                            }
+                        } else {
+                            alert('Failed to load question: ' + data.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        console.log('Response Text:', xhr.responseText);
+                        alert('Error loading question data: ' + error);
+                    }
+                });
+            }, 100);
+        });
+        
+        // Ensure modal is properly initialized
+        $('#addQuestionModal').on('shown.bs.modal', function() {
+            $('#question_text').focus();
+        });
+        
+        // Handle delete question form submission
+        $('.delete-question-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Are you sure you want to delete this question? This action cannot be undone. All answers associated with this question will also be deleted.')) {
+                this.submit();
+            }
+        });
+    });
+</script>
+
+<?php require_once __DIR__ . '/includes/footer_fixed.php'; ?>

@@ -1,0 +1,490 @@
+/* Apple-inspired Theme with Gray and Blue */
+:root {
+    /* Primary Colors */
+    --apple-blue: #0A84FF;
+    --apple-blue-dark: #0066CC;
+    --apple-gray-50: #F5F5F7;
+    --apple-gray-100: #E5E5EA;
+    --apple-gray-200: #D1D1D6;
+    --apple-gray-300: #C7C7CC;
+    --apple-gray-400: #AEAEB2;
+    --apple-gray-500: #8E8E93;
+    --apple-gray-600: #636366;
+    --apple-gray-700: #48484A;
+    --apple-gray-800: #3A3A3C;
+    --apple-gray-900: #2C2C2E;
+    
+    /* Background Colors */
+    --bg-primary: var(--apple-gray-50);
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: var(--apple-gray-100);
+    
+    /* Text Colors */
+    --text-primary: var(--apple-gray-900);
+    --text-secondary: var(--apple-gray-600);
+    --text-tertiary: var(--apple-gray-500);
+    
+    /* Border Colors */
+    --border-color: var(--apple-gray-200);
+    
+    /* Shadow Colors */
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    
+    /* Card Colors */
+    --card-bg: #FFFFFF;
+    --card-border: var(--apple-gray-100);
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark Mode Colors */
+body.dark-mode {
+    --bg-primary: var(--apple-gray-900);
+    --bg-secondary: var(--apple-gray-800);
+    --bg-tertiary: var(--apple-gray-700);
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: var(--apple-gray-400);
+    --text-tertiary: var(--apple-gray-500);
+    
+    --border-color: var(--apple-gray-700);
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    
+    --card-bg: var(--apple-gray-800);
+    --card-border: var(--apple-gray-700);
+    --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Global Styles */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Typography */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode div {
+    color: var(--text-primary);
+}
+
+/* Card Styling - Dark Mode */
+body.dark-mode .card {
+    background: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+body.dark-mode .card-header {
+    background: var(--bg-tertiary);
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .card-body {
+    background: var(--card-bg);
+}
+
+/* Form Controls - Dark Mode */
+body.dark-mode .form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--input-text);
+}
+
+body.dark-mode .form-control:focus {
+    background-color: var(--input-bg);
+    border-color: var(--apple-blue);
+    color: var(--input-text);
+}
+
+body.dark-mode .form-control::placeholder {
+    color: var(--input-placeholder);
+}
+
+/* Table Styling - Dark Mode */
+body.dark-mode .table {
+    color: var(--text-primary);
+    background-color: var(--card-bg);
+}
+
+body.dark-mode .table thead th {
+    background-color: var(--table-header-bg);
+    border-bottom-color: var(--table-border);
+    color: var(--text-secondary);
+}
+
+body.dark-mode .table td {
+    border-color: var(--table-border);
+}
+
+body.dark-mode .table tbody tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bg-tertiary);
+}
+
+/* Button Styling - Dark Mode */
+body.dark-mode .btn-light {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark-mode .btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Navigation - Dark Mode */
+body.dark-mode .navbar {
+    background-color: var(--bg-primary);
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .sidebar {
+    background-color: var(--bg-primary);
+    border-right-color: var(--border-color);
+}
+
+body.dark-mode .nav-link {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .nav-link:hover,
+body.dark-mode .nav-link.active {
+    color: var(--apple-blue);
+    background-color: var(--bg-tertiary);
+}
+
+/* Modal - Dark Mode */
+body.dark-mode .modal-content {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+/* Dropdown - Dark Mode */
+body.dark-mode .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+body.dark-mode .dropdown-item {
+    color: var(--text-primary);
+}
+
+body.dark-mode .dropdown-item:hover,
+body.dark-mode .dropdown-item:focus {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Alert Styling - Dark Mode */
+body.dark-mode .alert-success {
+    background-color: rgba(52, 199, 89, 0.15);
+    border-color: rgba(52, 199, 89, 0.2);
+    color: #34C759;
+}
+
+body.dark-mode .alert-danger {
+    background-color: rgba(255, 59, 48, 0.15);
+    border-color: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+/* Badge Styling - Dark Mode */
+body.dark-mode .badge {
+    border: 1px solid var(--border-color);
+}
+
+/* Stats Card - Dark Mode */
+body.dark-mode .stats-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+}
+
+body.dark-mode .stats-card h3 {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .stats-card .number {
+    color: var(--text-primary);
+}
+
+/* Welcome Card - Dark Mode */
+body.dark-mode .welcome-card {
+    background: linear-gradient(135deg, #0A84FF, #5E5CE6);
+}
+
+/* Footer - Dark Mode */
+body.dark-mode .footer {
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+}
+
+body.dark-mode .footer .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Base Styles for Light Mode */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+/* Card Styling */
+.card {
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    background: var(--card-bg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+}
+
+/* Button Styling */
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--apple-blue);
+    border-color: var(--apple-blue);
+}
+
+.btn-primary:hover {
+    background-color: var(--apple-blue-dark);
+    border-color: var(--apple-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Exam Card Styling */
+.exam-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.exam-card .card-header {
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.exam-card .card-body {
+    padding: 20px;
+}
+
+.exam-card .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.exam-card .card-text {
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.exam-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.exam-info-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.exam-info-item i {
+    margin-right: 5px;
+    color: var(--apple-blue);
+}
+
+.exam-action-btn {
+    width: 100%;
+    padding: 12px;
+    font-weight: 500;
+}
+
+/* Student Dashboard Stats */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #0A84FF, #30B4FF);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(10, 132, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card.green {
+    background: linear-gradient(135deg, #34C759, #30D158);
+    box-shadow: 0 5px 15px rgba(52, 199, 89, 0.2);
+}
+
+.stat-card.orange {
+    background: linear-gradient(135deg, #FF9500, #FFCC00);
+    box-shadow: 0 5px 15px rgba(255, 149, 0, 0.2);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card i {
+    font-size: 40px;
+    opacity: 0.2;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.stat-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-card .value {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.no-exams-message {
+    text-align: center;
+    padding: 30px;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.no-exams-message i {
+    font-size: 48px;
+    color: var(--text-tertiary);
+    margin-bottom: 15px;
+}
+
+.no-exams-message h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.no-exams-message p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Results Page Styling */
+.results-table .table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.results-table th {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-top: none;
+}
+
+.results-table .score-badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.results-table .badge-success {
+    background-color: rgba(52, 199, 89, 0.15);
+    color: #34C759;
+}
+
+.results-table .badge-danger {
+    background-color: rgba(255, 59, 48, 0.15);
+    color: #FF3B30;
+}
+
+/* Responsive Adaptations */
+@media (max-width: 768px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .exam-card {
+        margin-bottom: 15px;
+    }
+    
+    .exam-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .exam-info-item {
+        margin-bottom: 10px;
+    }
+} 

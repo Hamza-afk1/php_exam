@@ -1,7 +1,7 @@
 <?php
 // Include database connection
 require_once 'config/config.php';
-require_once 'config/Database.php';
+require_once __DIR__ . '/../utils/Database.php';
 require_once 'models/User.php';
 
 // Create user model

@@ -6,11 +6,10 @@ error_reporting(E_ALL);
 
 // Load configuration and database
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../utils/Database.php';
 
 // Initialize the database connection
 $database = new Database();
-$pdo = $database->getConnection();
 
 // SQL statements to add new fields
 $sql = [
@@ -31,19 +30,19 @@ $success = [];
 // Execute each query
 foreach ($sql as $query) {
     try {
-        $stmt = $pdo->prepare($query);
-        $result = $stmt->execute();
+        $stmt = $database->prepare($query);
+        $result = $database->execute($stmt);
         if ($result) {
             $success[] = "Success: " . $query;
         } else {
             $errors[] = "Failed: " . $query;
         }
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         // Skip duplicate column errors
-        if ($e->getCode() != '42S21') {
-            $errors[] = "Error: " . $e->getMessage() . " in query: " . $query;
-        } else {
+        if (strpos($e->getMessage(), 'Duplicate column') !== false) {
             $success[] = "Column already exists for: " . $query;
+        } else {
+            $errors[] = "Error: " . $e->getMessage() . " in query: " . $query;
         }
     }
 }

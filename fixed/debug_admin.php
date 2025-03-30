@@ -41,7 +41,7 @@ try {
 // Test database connection
 echo "<h2>Testing Database Connection:</h2>";
 try {
-    require_once __DIR__ . '/config/Database.php';
+    require_once __DIR__ . '/../utils/Database.php';
     $db = new Database();
     echo "<p style='color:green;'>✅ Database connection successful</p>";
     

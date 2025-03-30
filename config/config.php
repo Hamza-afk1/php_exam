@@ -6,11 +6,11 @@ define('DB_PASS', '');
 define('DB_NAME', 'exam_management');
 
 // Application configuration
-define('BASE_URL', 'http://localhost/new_exam_php');
+define('BASE_URL', 'http://localhost/php_exam');
 define('SITE_NAME', 'Exam Management System');
 
 // File upload configuration
-define('UPLOAD_DIR', $_SERVER['DOCUMENT_ROOT'] . '/new_exam_php/uploads/');
+define('UPLOAD_DIR', $_SERVER['DOCUMENT_ROOT'] . '/php_exam/uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 
 // Session configuration

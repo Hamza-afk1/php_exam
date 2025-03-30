@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 // Load configuration and database
 require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/config/Database.php';
+require_once __DIR__ . '/../utils/Database.php';
 
 // Initialize the database connection
 $database = new Database();

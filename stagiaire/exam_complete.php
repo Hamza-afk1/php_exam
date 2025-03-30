@@ -179,6 +179,14 @@ $pageTitle = "Exam Completed: " . $exam['name'];
                             <p>Thank you for completing the exam. Your answers have been recorded.</p>
                         </div>
 
+                        <!-- Check if the page was accessed via redirect from secure_exam.php -->
+                        <?php if (isset($_GET['already_taken']) && $_GET['already_taken'] == 1): ?>
+                            <div class="alert alert-warning">
+                                <h5><i class="fas fa-exclamation-triangle"></i> You have already taken this exam</h5>
+                                <p>Each student can only take an exam once. Below are your results from your previous attempt.</p>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if ($result['score'] !== null): ?>
                             <!-- Exam has been graded -->
                             <div class="card mb-3">

@@ -59,327 +59,141 @@ try {
 // Get recent results for this stagiaire
 $recentResults = $resultModel->getAllStagiaireResults($stagiaireId);
 
-// Count total exams completed
-$completedExams = count($recentResults);
-
-// Calculate average score
-$totalScore = 0;
-$passedExams = 0;
-foreach ($recentResults as $result) {
-    $totalScore += $result['score'];
-    
-    // Get passing score for this exam
-    $exam = $examModel->getById($result['exam_id']);
-    if ($exam && $result['score'] >= $exam['passing_score']) {
-        $passedExams++;
+// Calculate stats
+$totalExams = count($availableExams);
+$totalCompletedExams = count($recentResults);
+$avgScore = 0;
+if ($totalCompletedExams > 0) {
+    $totalScore = 0;
+    foreach ($recentResults as $result) {
+        $totalScore += $result['score'];
     }
+    $avgScore = round($totalScore / $totalCompletedExams);
 }
-$avgScore = $completedExams > 0 ? round($totalScore / $completedExams, 1) : 0;
 
+// Include header
+require_once __DIR__ . '/includes/header_fixed.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - <?php echo SITE_NAME; ?></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <link href="../assets/css/dark-mode.css" rel="stylesheet">
-    <style>
-        body {
-            font-size: .875rem;
-            padding-top: 4.5rem;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-            background-color:rgb()
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
 
-        }
-        .sidebar .nav-link.active {
-            color: #007bff;
-            background-color:rgb(189, 188, 188);
-            border-radius: 0.5rem;
-            
-        }
-        .stat-card {
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        .exam-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-        .exam-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            background-color: #007bff;
-        }
-        .support-card {
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-        .support-card:hover {
-            transform: translateY(-5px);
-        }
-        .card-title {
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php"><?php echo SITE_NAME; ?></a>
-        <ul class="navbar-nav px-3 ml-auto">
-            <li class="nav-item text-nowrap mr-3">
-                <button id="dark-mode-toggle" class="btn btn-outline-light">
-                    <i class="fas fa-moon"></i> Dark Mode
-                </button>
-            </li>
-        </ul>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/stagiaire/dashboard.php">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/exams.php">
-                                <i class="fas fa-clipboard-list"></i> My Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/results.php">
-                                <i class="fas fa-chart-bar"></i> My Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/stagiaire/profile.php">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="sidebar-footer mt-auto position-absolute" style="bottom: 20px; width: 100%;">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>/logout.php" style="padding: 0.75rem 1rem;">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Student Dashboard</h1>
-                    <div class="btn-group">
-                        <a href="<?php echo BASE_URL; ?>/stagiaire/exams.php" class="btn btn-sm btn-outline-success">
-                            <i class="fas fa-clipboard-list"></i> View All Exams
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card bg-info text-white stat-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="card-title">Available Exams</h6>
-                                        <h2 class="mb-0"><?php echo count($availableExams); ?></h2>
-                                    </div>
-                                    <i class="fas fa-clipboard-list fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-success text-white stat-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="card-title">Completed Exams</h6>
-                                        <h2 class="mb-0"><?php echo $completedExams; ?></h2>
-                                    </div>
-                                    <i class="fas fa-check-circle fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-primary text-white stat-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="card-title">Average Score</h6>
-                                        <h2 class="mb-0"><?php echo $avgScore; ?>%</h2>
-                                    </div>
-                                    <i class="fas fa-chart-line fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Available Exams Section -->
-                <h4 class="mb-3">Available Exams</h4>
-                <?php if (empty($availableExams)): ?>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> You have completed all available exams. Check with your instructor for more.
-                    </div>
-                <?php else: ?>
-                    <div class="row">
-                        <?php foreach (array_slice($availableExams, 0, 3) as $exam): ?>
-                            <div class="col-md-4 mb-4">
-                                <div class="card h-100 exam-card bg-light">
-                                    <div class="card-header bg-light">
-                                        <h5 class="mb-0"><?php echo htmlspecialchars($exam['name']); ?></h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="text-muted"><?php echo htmlspecialchars(substr($exam['description'], 0, 100)) . (strlen($exam['description']) > 100 ? '...' : ''); ?></p>
-                                        <div class="d-flex justify-content-between mb-3">
-                                            <span><i class="fas fa-clock"></i> <?php echo $exam['time_limit']; ?> min</span>
-                                            <span><i class="fas fa-check"></i> Pass: <?php echo $exam['passing_score']; ?>%</span>
-                                        </div>
-                                        <p class="text-muted small mb-0">
-                                            <i class="fas fa-user"></i> <?php echo htmlspecialchars($exam['formateur_name'] ?? 'Unknown'); ?>
-                                        </p>
-                                    </div>
-                                    <div class="card-footer bg-white">
-                                        <a href="<?php echo BASE_URL; ?>/exam.php?id=<?php echo $exam['id']; ?>" class="btn btn-success btn-block">
-                                            <i class="fas fa-play-circle"></i> Start Exam
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php if (count($availableExams) > 3): ?>
-                        <div class="text-center mb-4">
-                            <a href="<?php echo BASE_URL; ?>/stagiaire/exams.php" class="btn btn-outline-primary">
-                                View All Available Exams (<?php echo count($availableExams); ?>)
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <!-- Recent Results Section -->
-                <h4 class="mb-3">Recent Results</h4>
-                <?php if (empty($recentResults)): ?>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> You haven't taken any exams yet. Start an exam to see your results here.
-                    </div>
-                <?php else: ?>
-                    <div class="card bg-light">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Exam</th>
-                                        <th>Score</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach (array_slice($recentResults, 0, 5) as $result): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($result['exam_name']); ?></td>
-                                            <td><?php echo $result['score']; ?>%</td>
-                                            <td>
-                                                <?php
-                                                // Get exam passing score
-                                                $exam = $examModel->getById($result['exam_id']);
-                                                $passingScore = $exam ? $exam['passing_score'] : 70;
-                                                $isPassed = $result['score'] >= $passingScore;
-                                                ?>
-                                                <span class="badge badge-<?php echo $isPassed ? 'success' : 'danger'; ?>">
-                                                    <?php echo $isPassed ? 'PASSED' : 'FAILED'; ?>
-                                                </span>
-                                            </td>
-                                            <td><?php echo date('M d, Y', strtotime($result['created_at'])); ?></td>
-                                            <td>
-                                                <a href="<?php echo BASE_URL; ?>/stagiaire/results.php?id=<?php echo $result['id']; ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i> View
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <?php if (count($recentResults) > 5): ?>
-                        <div class="text-center mt-3">
-                            <a href="<?php echo BASE_URL; ?>/stagiaire/results.php" class="btn btn-outline-primary">
-                                View All Results
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-                
-                <!-- Additional Resources Section -->
-                <!--<div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card support-card bg-light">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="fas fa-lightbulb"></i> Need Help?</h5>
-                                <p class="card-text">If you need assistance with your exams or have questions, please contact your instructor or the administration.</p>
-                                <a href="#" class="btn btn-outline-secondary">Contact Support</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>-->
-                
-            </main>
+<div class="dashboard-wrapper">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Student Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="<?php echo BASE_URL; ?>/stagiaire/exams.php" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-clipboard-list mr-1"></i> View All Exams
+            </a>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="../assets/js/dark-mode.js"></script>
-</body>
-</html>
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>Available Exams</h3>
+            <div class="value"><?php echo $totalExams; ?></div>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-check-circle"></i>
+            <h3>Completed Exams</h3>
+            <div class="value"><?php echo $totalCompletedExams; ?></div>
+        </div>
+        
+        <div class="stat-card orange">
+            <i class="fas fa-chart-line"></i>
+            <h3>Average Score</h3>
+            <div class="value"><?php echo $avgScore; ?>%</div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Available Exams Column -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Available Exams</h6>
+                    <a href="<?php echo BASE_URL; ?>/stagiaire/exams.php" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($availableExams)): ?>
+                        <div class="no-exams-message">
+                            <i class="fas fa-info-circle"></i>
+                            <h3>No Available Exams</h3>
+                            <p>You have completed all available exams. Check back later for new ones!</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="exam-list">
+                            <?php foreach (array_slice($availableExams, 0, 3) as $exam): ?>
+                                <div class="card exam-card">
+                                    <div class="card-header">
+                                        <h5 class="card-title"><?php echo htmlspecialchars($exam['name']); ?></h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text"><?php echo htmlspecialchars(substr($exam['description'], 0, 150)) . (strlen($exam['description']) > 150 ? '...' : ''); ?></p>
+                                        
+                                        <div class="exam-info">
+                                            <div class="exam-info-item">
+                                                <i class="fas fa-clock"></i> <?php echo $exam['time_limit']; ?> minutes
+                                            </div>
+                                            <div class="exam-info-item">
+                                                <i class="fas fa-user"></i> <?php echo htmlspecialchars($exam['formateur_name']); ?>
+                                            </div>
+                                            <div class="exam-info-item">
+                                                <i class="fas fa-chart-bar"></i> Passing: <?php echo $exam['passing_score']; ?>%
+                                            </div>
+                                        </div>
+                                        
+                                        <a href="secure_exam.php?id=<?php echo $exam['id']; ?>" class="btn btn-primary exam-action-btn">
+                                            <i class="fas fa-play-circle mr-1"></i> Start Exam
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Results Column -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Results</h6>
+                    <a href="<?php echo BASE_URL; ?>/stagiaire/results.php" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($recentResults)): ?>
+                        <p class="text-center text-muted my-4">
+                            <i class="fas fa-info-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                            No exam results yet.<br>Take your first exam to see your results here!
+                        </p>
+                    <?php else: ?>
+                        <?php foreach (array_slice($recentResults, 0, 5) as $result): ?>
+                            <div class="result-item">
+                                <h6 class="mb-1"><?php echo htmlspecialchars($result['exam_name']); ?></h6>
+                                <div class="result-details">
+                                    <span class="result-score <?php echo $result['score'] >= $result['passing_score'] ? 'pass' : 'fail'; ?>">
+                                        <?php echo $result['score']; ?>%
+                                    </span>
+                                    <small class="text-muted">
+                                        <?php echo date('M d, Y', strtotime($result['created_at'])); ?>
+                                    </small>
+                                    <a href="view_result.php?id=<?php echo $result['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 // Include footer
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/includes/footer_fixed.php';
 ?>

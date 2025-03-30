@@ -23,7 +23,7 @@ if (!Session::isLoggedIn()) {
 }
 
 // Check if user is formateur
-if (Session::get('user_role') !== 'formateur') {
+if (Session::get('role') !== 'formateur') {
     header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
@@ -229,8 +229,13 @@ $pageTitle = "Grade Exam";
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/formateur/results.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/formateur/results.php">
                                 <i class="fas fa-chart-bar"></i> Results
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="<?php echo BASE_URL; ?>/formateur/grade_exam.php">
+                                <i class="fas fa-pencil-alt"></i> Grade Exams
                             </a>
                         </li>
                     </ul>
@@ -261,7 +266,27 @@ $pageTitle = "Grade Exam";
                 </div>
                 <?php endif; ?>
 
-                <?php if ($examData && $stagiaireData && !empty($answers)): ?>
+                <?php if ($examId === 0 || $stagiaireId === 0): ?>
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-pencil-alt mr-2"></i>Grade Exams</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Welcome to the exam grading interface. Here you can grade open-ended questions for exams that have been submitted by students.</p>
+                        
+                        <h6 class="mt-4 mb-3">To grade an exam:</h6>
+                        <ol>
+                            <li>Go to <a href="<?php echo BASE_URL; ?>/formateur/results.php">Results</a> page</li>
+                            <li>Find the exam result you want to grade</li>
+                            <li>Click the "Grade Open Questions" button next to that result</li>
+                        </ol>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle mr-2"></i> Multiple-choice questions are graded automatically, but open-ended questions require your evaluation.
+                        </div>
+                    </div>
+                </div>
+                <?php elseif ($examData && $stagiaireData && !empty($answers)): ?>
                     <div class="card mb-4">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
@@ -388,6 +413,6 @@ $pageTitle = "Grade Exam";
 
 <?php
 // Include footer
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/includes/footer_fixed.php';
 ?>
 
